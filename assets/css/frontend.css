@@ -1,0 +1,1728 @@
+/**
+ * Ultra Light Options - Frontend Styles
+ * GMC-compliant, Zero Layout Shift design
+ *
+ * @package UltraLightOptions
+ * @since 2.0.0
+ */
+
+/* ==========================================================================
+   CSS Custom Properties (Theme Integration)
+   ========================================================================== */
+
+:root {
+    --ulo-primary-color: #2271b1;
+    --ulo-primary-hover: #135e96;
+    --ulo-success-color: #00a32a;
+    --ulo-error-color: #d63638;
+    --ulo-warning-color: #dba617;
+    --ulo-text-color: #1d2327;
+    --ulo-text-muted: #646970;
+    --ulo-border-color: #c3c4c7;
+    --ulo-border-focus: #2271b1;
+    --ulo-bg-color: #fff;
+    --ulo-bg-alt: #f6f7f7;
+    --ulo-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --ulo-radius: 4px;
+    --ulo-transition: 0.2s ease;
+    --ulo-field-height: 40px;
+    --ulo-spacing-xs: 4px;
+    --ulo-spacing-sm: 8px;
+    --ulo-spacing-md: 16px;
+    --ulo-spacing-lg: 24px;
+}
+
+/* ==========================================================================
+   Main Container - Zero Layout Shift
+   ========================================================================== */
+
+.ulo-product-options {
+    margin: var(--ulo-spacing-lg) 0;
+    min-height: 50px;
+    /* Prevent layout shift */
+}
+
+.ulo-product-options:empty {
+    display: none;
+}
+
+/* ==========================================================================
+   Field Wrapper
+   ========================================================================== */
+
+.ulo-field {
+    margin-bottom: var(--ulo-spacing-md);
+    opacity: 1;
+    transition: opacity var(--ulo-transition), max-height 0.3s ease;
+    overflow: visible;
+    /* Changed from hidden to allow badges to overflow */
+    position: relative;
+}
+
+.ulo-field[data-visible="false"] {
+    opacity: 0;
+    max-height: 0;
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
+}
+
+.ulo-field-label {
+    display: block;
+    margin-bottom: var(--ulo-spacing-xs);
+    font-weight: 600;
+    color: var(--ulo-text-color);
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.ulo-field-required {
+    color: var(--ulo-error-color);
+    margin-left: 2px;
+}
+
+.ulo-field-description {
+    display: block;
+    margin-top: var(--ulo-spacing-xs);
+    font-size: 13px;
+    color: var(--ulo-text-muted);
+    line-height: 1.5;
+}
+
+.ulo-field-price {
+    display: inline-block;
+    margin-left: var(--ulo-spacing-sm);
+    font-size: 13px;
+    color: var(--ulo-text-muted);
+    font-weight: 400;
+}
+
+/* Badges */
+.ulo-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-radius: 20px;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    white-space: nowrap;
+    margin-left: 8px;
+}
+
+/* Shine animation - disabled by default for performance */
+.ulo-badge.ulo-badge-shine::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: ulo-shine 3s infinite;
+}
+
+@keyframes ulo-shine {
+    0% {
+        left: -100%;
+    }
+
+    20% {
+        left: 100%;
+    }
+
+    100% {
+        left: 100%;
+    }
+}
+
+.ulo-badge-pulse {
+    animation: ulo-badge-pulse 2s infinite;
+}
+
+@keyframes ulo-badge-pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.4);
+    }
+
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+}
+
+/* Glassmorphism variant */
+.ulo-badge-glass {
+    background: rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: inherit;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* Field-level badge positioning - Keep it inside but top-right */
+.ulo-field>.ulo-badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    margin-left: 0;
+}
+
+/* Option-level badges */
+.ulo-option-badge {
+    /* Inherits inline-flex from .ulo-badge */
+    margin-left: auto;
+    /* Push to the right side if there is space */
+}
+
+/* Ensure containers are relative */
+.ulo-radio-option,
+.ulo-checkbox-option,
+.ulo-switch-wrapper {
+    position: relative !important;
+}
+
+
+/* ==========================================================================
+   Text & Textarea Fields
+   ========================================================================== */
+
+.ulo-field-text input[type="text"],
+.ulo-field-text input[type="email"],
+.ulo-field-text input[type="url"],
+.ulo-field-text input[type="tel"],
+.ulo-field-number input[type="number"],
+.ulo-field-textarea textarea {
+    width: 100%;
+    max-width: 400px;
+    height: var(--ulo-field-height);
+    padding: var(--ulo-spacing-sm) var(--ulo-spacing-md);
+    border: 1px solid var(--ulo-border-color);
+    border-radius: var(--ulo-radius);
+    background-color: var(--ulo-bg-color);
+    color: var(--ulo-text-color);
+    font-size: 14px;
+    line-height: 1.4;
+    transition: border-color var(--ulo-transition), box-shadow var(--ulo-transition);
+    box-sizing: border-box;
+}
+
+.ulo-field-textarea textarea {
+    height: auto;
+    min-height: 100px;
+    resize: vertical;
+}
+
+.ulo-field-text input:focus,
+.ulo-field-number input:focus,
+.ulo-field-textarea textarea:focus {
+    outline: none;
+    border-color: var(--ulo-border-focus);
+    box-shadow: 0 0 0 1px var(--ulo-border-focus);
+}
+
+.ulo-field-text input:disabled,
+.ulo-field-number input:disabled,
+.ulo-field-textarea textarea:disabled {
+    background-color: var(--ulo-bg-alt);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* ==========================================================================
+   Select Field
+   ========================================================================== */
+
+.ulo-field-select select {
+    width: 100%;
+    max-width: 400px;
+    height: var(--ulo-field-height);
+    padding: var(--ulo-spacing-sm) var(--ulo-spacing-md);
+    padding-right: 32px;
+    border: 1px solid var(--ulo-border-color);
+    border-radius: var(--ulo-radius);
+    background-color: var(--ulo-bg-color);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23646970' d='M6 8.5L1.5 4h9z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    color: var(--ulo-text-color);
+    font-size: 14px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    transition: border-color var(--ulo-transition), box-shadow var(--ulo-transition);
+}
+
+.ulo-field-select select:focus {
+    outline: none;
+    border-color: var(--ulo-border-focus);
+    box-shadow: 0 0 0 1px var(--ulo-border-focus);
+}
+
+/* ==========================================================================
+   Radio & Checkbox Fields
+   ========================================================================== */
+
+.ulo-field-radio .ulo-options,
+.ulo-field-checkbox .ulo-options,
+.ulo-field-checkbox-group .ulo-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ulo-spacing-sm);
+}
+
+.ulo-field-radio .ulo-option,
+.ulo-field-checkbox .ulo-option,
+.ulo-field-checkbox-group .ulo-option {
+    display: flex;
+    align-items: center;
+    gap: var(--ulo-spacing-sm);
+    cursor: pointer;
+    padding: var(--ulo-spacing-xs) 0;
+}
+
+.ulo-field-radio .ulo-option input[type="radio"],
+.ulo-field-checkbox .ulo-option input[type="checkbox"],
+.ulo-field-checkbox-group .ulo-option input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--ulo-primary-color);
+}
+
+.ulo-option-label {
+    font-size: 14px;
+    color: var(--ulo-text-color);
+    line-height: 1.4;
+    user-select: none;
+}
+
+.ulo-option-price {
+    font-size: 13px;
+    color: var(--ulo-text-muted);
+    margin-left: var(--ulo-spacing-xs);
+}
+
+/* ==========================================================================
+   Radio Switch (Toggle Style)
+   ========================================================================== */
+
+.ulo-field-radio-switch .ulo-switch-options {
+    display: inline-flex;
+    border: 1px solid var(--ulo-border-color);
+    border-radius: var(--ulo-radius);
+    overflow: hidden;
+}
+
+.ulo-field-radio-switch .ulo-switch-option {
+    position: relative;
+}
+
+.ulo-field-radio-switch .ulo-switch-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ulo-field-radio-switch .ulo-switch-label {
+    display: block;
+    padding: var(--ulo-spacing-sm) var(--ulo-spacing-md);
+    background-color: var(--ulo-bg-color);
+    color: var(--ulo-text-color);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color var(--ulo-transition), color var(--ulo-transition);
+    border-right: 1px solid var(--ulo-border-color);
+}
+
+.ulo-field-radio-switch .ulo-switch-option:last-child .ulo-switch-label {
+    border-right: none;
+}
+
+.ulo-field-radio-switch .ulo-switch-option input:checked+.ulo-switch-label {
+    background-color: var(--ulo-primary-color);
+    color: #fff;
+}
+
+.ulo-field-radio-switch .ulo-switch-option input:focus+.ulo-switch-label {
+    box-shadow: inset 0 0 0 2px var(--ulo-border-focus);
+}
+
+/* ==========================================================================
+   Visual Swatches
+   ========================================================================== */
+
+.ulo-swatch-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ulo-spacing-sm);
+}
+
+.ulo-swatch-option {
+    position: relative;
+}
+
+.ulo-swatch-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ulo-swatch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ulo-spacing-xs);
+    padding: var(--ulo-spacing-sm);
+    border: 2px solid var(--ulo-border-color);
+    border-radius: var(--ulo-radius);
+    cursor: pointer;
+    transition: border-color var(--ulo-transition), box-shadow var(--ulo-transition);
+    min-width: 60px;
+}
+
+.ulo-swatch:hover {
+    border-color: var(--ulo-primary-color);
+}
+
+.ulo-swatch-option input:checked+.ulo-swatch {
+    border-color: var(--ulo-primary-color);
+    box-shadow: 0 0 0 1px var(--ulo-primary-color);
+}
+
+.ulo-swatch-option input:focus+.ulo-swatch {
+    outline: 2px solid var(--ulo-border-focus);
+    outline-offset: 2px;
+}
+
+.ulo-swatch-color {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.ulo-swatch-image {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: var(--ulo-radius);
+}
+
+.ulo-swatch-label {
+    font-size: 12px;
+    color: var(--ulo-text-color);
+    text-align: center;
+}
+
+/* ==========================================================================
+   Date & Time Fields
+   ========================================================================== */
+
+.ulo-field-date input[type="date"],
+.ulo-field-time input[type="time"] {
+    width: 100%;
+    max-width: 200px;
+    height: var(--ulo-field-height);
+    padding: var(--ulo-spacing-sm) var(--ulo-spacing-md);
+    border: 1px solid var(--ulo-border-color);
+    border-radius: var(--ulo-radius);
+    background-color: var(--ulo-bg-color);
+    color: var(--ulo-text-color);
+    font-size: 14px;
+    transition: border-color var(--ulo-transition), box-shadow var(--ulo-transition);
+}
+
+.ulo-field-date input:focus,
+.ulo-field-time input:focus {
+    outline: none;
+    border-color: var(--ulo-border-focus);
+    box-shadow: 0 0 0 1px var(--ulo-border-focus);
+}
+
+/* ==========================================================================
+   File Upload Field
+   ========================================================================== */
+
+.ulo-field-file .ulo-file-dropzone {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--ulo-spacing-lg);
+    border: 2px dashed var(--ulo-border-color);
+    border-radius: var(--ulo-radius);
+    background-color: var(--ulo-bg-alt);
+    cursor: pointer;
+    transition: border-color var(--ulo-transition), background-color var(--ulo-transition);
+    min-height: 120px;
+}
+
+.ulo-field-file .ulo-file-dropzone:hover,
+.ulo-field-file .ulo-file-dropzone.ulo-dragover {
+    border-color: var(--ulo-primary-color);
+    background-color: rgba(34, 113, 177, 0.05);
+}
+
+.ulo-field-file .ulo-file-dropzone input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.ulo-file-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: var(--ulo-spacing-sm);
+    fill: var(--ulo-text-muted);
+}
+
+.ulo-file-text {
+    font-size: 14px;
+    color: var(--ulo-text-color);
+    text-align: center;
+}
+
+.ulo-file-text-small {
+    font-size: 12px;
+    color: var(--ulo-text-muted);
+    margin-top: var(--ulo-spacing-xs);
+}
+
+.ulo-file-preview {
+    display: none;
+    align-items: center;
+    gap: var(--ulo-spacing-md);
+    padding: var(--ulo-spacing-md);
+    background-color: var(--ulo-bg-alt);
+    border-radius: var(--ulo-radius);
+    margin-top: var(--ulo-spacing-sm);
+}
+
+.ulo-file-preview.ulo-has-file {
+    display: flex;
+}
+
+.ulo-file-preview-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: var(--ulo-radius);
+    border: 1px solid var(--ulo-border-color);
+}
+
+.ulo-file-preview-icon {
+    width: 40px;
+    height: 40px;
+    fill: var(--ulo-text-muted);
+}
+
+.ulo-file-preview-info {
+    flex: 1;
+}
+
+.ulo-file-preview-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ulo-text-color);
+    word-break: break-all;
+}
+
+.ulo-file-preview-size {
+    font-size: 12px;
+    color: var(--ulo-text-muted);
+}
+
+.ulo-file-preview-remove {
+    padding: var(--ulo-spacing-sm);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ulo-error-color);
+    font-size: 20px;
+    line-height: 1;
+    transition: opacity var(--ulo-transition);
+}
+
+.ulo-file-preview-remove:hover {
+    opacity: 0.7;
+}
+
+/* Upload progress */
+.ulo-file-progress {
+    display: none;
+    margin-top: var(--ulo-spacing-sm);
+}
+
+.ulo-file-progress.ulo-uploading {
+    display: block;
+}
+
+.ulo-file-progress-bar {
+    height: 4px;
+    background-color: var(--ulo-bg-alt);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.ulo-file-progress-fill {
+    height: 100%;
+    background-color: var(--ulo-primary-color);
+    transition: width 0.2s ease;
+    width: 0;
+}
+
+.ulo-file-progress-text {
+    font-size: 12px;
+    color: var(--ulo-text-muted);
+    margin-top: var(--ulo-spacing-xs);
+    text-align: center;
+}
+
+/* ==========================================================================
+   HTML Field (Read-only Content)
+   ========================================================================== */
+
+.ulo-field-html {
+    padding: var(--ulo-spacing-md);
+    background-color: var(--ulo-bg-alt);
+    border-radius: var(--ulo-radius);
+    border-left: 3px solid var(--ulo-primary-color);
+}
+
+.ulo-html-content {
+    font-size: 14px;
+    color: var(--ulo-text-color);
+    line-height: 1.6;
+}
+
+.ulo-html-content p:last-child {
+    margin-bottom: 0;
+}
+
+/* ==========================================================================
+   GMC-Compliant Price Summary Box
+   ========================================================================== */
+
+.ulo-price-summary {
+    margin-top: var(--ulo-spacing-lg);
+    padding: var(--ulo-spacing-md);
+    background-color: var(--ulo-bg-alt);
+    border: 1px solid var(--ulo-border-color);
+    border-radius: var(--ulo-radius);
+}
+
+.ulo-price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--ulo-spacing-xs) 0;
+}
+
+.ulo-price-row+.ulo-price-row {
+    border-top: 1px solid var(--ulo-border-color);
+    margin-top: var(--ulo-spacing-xs);
+    padding-top: var(--ulo-spacing-sm);
+}
+
+.ulo-price-label {
+    font-size: 14px;
+    color: var(--ulo-text-color);
+}
+
+.ulo-price-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ulo-text-color);
+}
+
+.ulo-price-final {
+    margin-top: var(--ulo-spacing-sm);
+    padding-top: var(--ulo-spacing-sm);
+    border-top: 2px solid var(--ulo-primary-color);
+}
+
+.ulo-price-final .ulo-price-label {
+    font-weight: 600;
+}
+
+.ulo-price-final .ulo-price-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ulo-primary-color);
+}
+
+/* Price breakdown details */
+.ulo-price-breakdown {
+    margin-top: var(--ulo-spacing-sm);
+    padding-top: var(--ulo-spacing-sm);
+    border-top: 1px dashed var(--ulo-border-color);
+}
+
+.ulo-price-breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--ulo-text-muted);
+    padding: 2px 0;
+}
+
+/* ==========================================================================
+   Validation States
+   ========================================================================== */
+
+.ulo-field.ulo-has-error .ulo-field-label {
+    color: var(--ulo-error-color);
+}
+
+.ulo-field.ulo-has-error input,
+.ulo-field.ulo-has-error textarea,
+.ulo-field.ulo-has-error select {
+    border-color: var(--ulo-error-color);
+}
+
+.ulo-field.ulo-has-error input:focus,
+.ulo-field.ulo-has-error textarea:focus,
+.ulo-field.ulo-has-error select:focus {
+    box-shadow: 0 0 0 1px var(--ulo-error-color);
+}
+
+.ulo-field-error {
+    display: none;
+    margin-top: var(--ulo-spacing-xs);
+    font-size: 13px;
+    color: var(--ulo-error-color);
+}
+
+.ulo-field.ulo-has-error .ulo-field-error {
+    display: block;
+}
+
+/* ==========================================================================
+   Loading States
+   ========================================================================== */
+
+.ulo-loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.ulo-loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid var(--ulo-border-color);
+    border-top-color: var(--ulo-primary-color);
+    border-radius: 50%;
+    animation: ulo-spin 0.8s linear infinite;
+}
+
+@keyframes ulo-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.ulo-product-options.ulo-loading>*:not(.ulo-price-summary) {
+    opacity: 0.5;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media (max-width: 768px) {
+
+    .ulo-field-text input,
+    .ulo-field-number input,
+    .ulo-field-textarea textarea,
+    .ulo-field-select select {
+        max-width: 100%;
+    }
+
+    .ulo-swatch-options {
+        justify-content: center;
+    }
+
+    .ulo-price-summary {
+        margin-left: calc(-1 * var(--ulo-spacing-md));
+        margin-right: calc(-1 * var(--ulo-spacing-md));
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+
+    .ulo-file-preview {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    /* Modern UI mobile adjustments */
+    .ulo-option-card {
+        padding: var(--ulo-spacing-md);
+    }
+
+    .ulo-pill-toggle {
+        flex-direction: column;
+        border-radius: var(--ulo-radius, 8px);
+    }
+
+    .ulo-pill-toggle .ulo-pill-option {
+        border-radius: var(--ulo-radius, 8px);
+    }
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+    .ulo-field-file .ulo-file-dropzone {
+        display: none;
+    }
+
+    .ulo-price-summary {
+        break-inside: avoid;
+    }
+}
+
+/* ==========================================================================
+   MODERN PREMIUM UI STYLES
+   Inspired by Love Wellness & Dr. Squatch designs
+   ========================================================================== */
+
+/* Option Card Base - Modern Card Layout */
+.ulo-option-card {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ulo-spacing-md);
+    padding: var(--ulo-spacing-md) var(--ulo-spacing-lg);
+    background: var(--ulo-bg-color, #fff);
+    border: 2px solid var(--ulo-border-color, #e2e4e7);
+    border-radius: var(--ulo-radius, 8px);
+    cursor: pointer;
+    transition: all var(--ulo-animation-duration, 0.25s) ease;
+    margin-bottom: var(--ulo-spacing-sm);
+}
+
+.ulo-option-card:hover {
+    border-color: var(--ulo-accent-color, #2271b1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.ulo-option-card.is-selected {
+    border-color: var(--ulo-accent-color, #2271b1);
+    background: var(--ulo-accent-bg, #f0f7ff);
+}
+
+/* Card Style Variants */
+/* Minimal Style */
+.ulo-product-options[style*="--ulo-card-style: minimal"] .ulo-option-card,
+.ulo-option-card.ulo-card-minimal {
+    border: none;
+    border-bottom: 2px solid var(--ulo-border-color, #e2e4e7);
+    border-radius: 0;
+    padding-left: 0;
+    padding-right: 0;
+    background: transparent;
+}
+
+.ulo-product-options[style*="--ulo-card-style: minimal"] .ulo-option-card:hover,
+.ulo-option-card.ulo-card-minimal:hover {
+    border-bottom-color: var(--ulo-accent-color, #2271b1);
+    transform: none;
+    box-shadow: none;
+}
+
+.ulo-product-options[style*="--ulo-card-style: minimal"] .ulo-option-card.is-selected,
+.ulo-option-card.ulo-card-minimal.is-selected {
+    border-bottom-color: var(--ulo-accent-color, #2271b1);
+    background: transparent;
+}
+
+/* Filled Style */
+.ulo-product-options[style*="--ulo-card-style: filled"] .ulo-option-card,
+.ulo-option-card.ulo-card-filled {
+    background: var(--ulo-bg-alt, #f8f9fa);
+    border: 1px solid transparent;
+}
+
+.ulo-product-options[style*="--ulo-card-style: filled"] .ulo-option-card:hover,
+.ulo-option-card.ulo-card-filled:hover {
+    background: var(--ulo-accent-bg, #f0f7ff);
+    border-color: var(--ulo-accent-color, #2271b1);
+}
+
+.ulo-product-options[style*="--ulo-card-style: filled"] .ulo-option-card.is-selected,
+.ulo-option-card.ulo-card-filled.is-selected {
+    background: var(--ulo-accent-bg, #f0f7ff);
+    border-color: var(--ulo-accent-color, #2271b1);
+}
+
+/* Elegant Style (Shadow) */
+.ulo-product-options[style*="--ulo-card-style: elegant"] .ulo-option-card,
+.ulo-option-card.ulo-card-elegant {
+    border: 1px solid var(--ulo-border-color, #e2e4e7);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.ulo-product-options[style*="--ulo-card-style: elegant"] .ulo-option-card:hover,
+.ulo-option-card.ulo-card-elegant:hover {
+    border-color: var(--ulo-accent-color, #2271b1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.ulo-product-options[style*="--ulo-card-style: elegant"] .ulo-option-card.is-selected,
+.ulo-option-card.ulo-card-elegant.is-selected {
+    border-color: var(--ulo-accent-color, #2271b1);
+    box-shadow: 0 4px 16px rgba(34, 113, 177, 0.15);
+    background: var(--ulo-accent-bg, #f0f7ff);
+}
+
+/* Option Card Content */
+.ulo-option-card input[type="radio"],
+.ulo-option-card input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    accent-color: var(--ulo-accent-color, #2271b1);
+    cursor: pointer;
+}
+
+.ulo-option-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.ulo-option-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ulo-spacing-sm);
+    flex-wrap: wrap;
+}
+
+.ulo-option-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ulo-text-color, #1d2327);
+    line-height: 1.4;
+}
+
+.ulo-option-card.is-selected .ulo-option-title {
+    color: var(--ulo-accent-color, #2271b1);
+}
+
+.ulo-option-price-tag {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ulo-text-muted, #646970);
+    white-space: nowrap;
+}
+
+.ulo-option-card.is-selected .ulo-option-price-tag {
+    color: var(--ulo-accent-color, #2271b1);
+}
+
+.ulo-option-description {
+    margin-top: var(--ulo-spacing-xs);
+    font-size: 13px;
+    color: var(--ulo-text-muted, #646970);
+    line-height: 1.5;
+}
+
+/* Savings Badge */
+.ulo-savings-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    background: var(--ulo-success-color, #00a32a);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 20px;
+    margin-left: var(--ulo-spacing-sm);
+}
+
+.ulo-best-value-badge {
+    position: absolute;
+    top: -10px;
+    left: var(--ulo-spacing-md);
+    padding: 4px 12px;
+    background: var(--ulo-success-color, #00a32a);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 20px;
+}
+
+/* Expanded Info Section (Subscription Style) */
+.ulo-option-expanded {
+    margin-top: var(--ulo-spacing-md);
+    padding-top: var(--ulo-spacing-md);
+    border-top: 1px solid var(--ulo-border-color, #e2e4e7);
+}
+
+.ulo-option-features {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.ulo-option-features li {
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: var(--ulo-spacing-xs);
+    font-size: 13px;
+    color: var(--ulo-text-muted, #646970);
+    line-height: 1.5;
+}
+
+.ulo-option-features li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--ulo-success-color, #00a32a);
+    font-weight: 700;
+}
+
+/* ==========================================================================
+   Pill Toggle Buttons (Love Wellness Style)
+   ========================================================================== */
+
+.ulo-pill-toggle {
+    display: inline-flex;
+    background: var(--ulo-bg-alt, #f6f7f7);
+    border-radius: 50px;
+    padding: 4px;
+    gap: 4px;
+}
+
+.ulo-pill-toggle .ulo-pill-option {
+    position: relative;
+}
+
+.ulo-pill-toggle .ulo-pill-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ulo-pill-toggle .ulo-pill-label {
+    display: flex;
+    align-items: center;
+    gap: var(--ulo-spacing-xs);
+    padding: 10px 20px;
+    background: transparent;
+    color: var(--ulo-text-color, #1d2327);
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all var(--ulo-animation-duration, 0.25s) ease;
+    white-space: nowrap;
+}
+
+.ulo-pill-toggle .ulo-pill-label:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.ulo-pill-toggle .ulo-pill-option input:checked+.ulo-pill-label {
+    background: var(--ulo-accent-color, #2271b1);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(34, 113, 177, 0.3);
+}
+
+.ulo-pill-toggle .ulo-pill-option input:focus+.ulo-pill-label {
+    box-shadow: 0 0 0 3px rgba(34, 113, 177, 0.25);
+}
+
+.ulo-pill-price {
+    opacity: 0.8;
+    font-weight: 400;
+}
+
+/* ==========================================================================
+   Premium Size/Variant Selector (Dr. Squatch Style)
+   ========================================================================== */
+
+.ulo-variant-selector {
+    display: flex;
+    gap: var(--ulo-spacing-sm);
+    flex-wrap: wrap;
+}
+
+.ulo-variant-option {
+    position: relative;
+    flex: 1;
+    min-width: 120px;
+}
+
+.ulo-variant-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ulo-variant-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ulo-spacing-xs);
+    padding: var(--ulo-spacing-md);
+    background: var(--ulo-bg-color, #fff);
+    border: 2px solid var(--ulo-border-color, #e2e4e7);
+    border-radius: var(--ulo-radius, 8px);
+    cursor: pointer;
+    transition: all var(--ulo-animation-duration, 0.25s) ease;
+    text-align: center;
+}
+
+.ulo-variant-label:hover {
+    border-color: var(--ulo-accent-color, #2271b1);
+}
+
+.ulo-variant-option input:checked+.ulo-variant-label {
+    border-color: var(--ulo-accent-color, #2271b1);
+    background: var(--ulo-accent-bg, #f0f7ff);
+}
+
+.ulo-variant-option input:focus+.ulo-variant-label {
+    box-shadow: 0 0 0 3px rgba(34, 113, 177, 0.25);
+}
+
+.ulo-variant-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ulo-text-color, #1d2327);
+}
+
+.ulo-variant-subtitle {
+    font-size: 12px;
+    color: var(--ulo-text-muted, #646970);
+}
+
+.ulo-variant-price {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ulo-accent-color, #2271b1);
+}
+
+/* ==========================================================================
+   Enhanced Price Summary (Premium Style)
+   ========================================================================== */
+
+.ulo-price-summary.ulo-premium-summary {
+    background: linear-gradient(135deg, var(--ulo-accent-bg, #f0f7ff) 0%, var(--ulo-bg-color, #fff) 100%);
+    border: 2px solid var(--ulo-accent-color, #2271b1);
+    border-radius: var(--ulo-radius, 8px);
+    padding: var(--ulo-spacing-lg);
+}
+
+.ulo-price-summary.ulo-premium-summary .ulo-price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--ulo-spacing-sm) 0;
+}
+
+.ulo-price-summary.ulo-premium-summary .ulo-price-final {
+    margin-top: var(--ulo-spacing-sm);
+    padding-top: var(--ulo-spacing-md);
+    border-top: 2px solid var(--ulo-accent-color, #2271b1);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.ulo-price-summary.ulo-premium-summary .ulo-price-final .ulo-price-value {
+    color: var(--ulo-accent-color, #2271b1);
+}
+
+/* ==========================================================================
+   Smooth Animations
+   ========================================================================== */
+
+@keyframes ulo-fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes ulo-pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+.ulo-animate-in {
+    animation: ulo-fade-in-up var(--ulo-animation-duration, 0.25s) ease-out;
+}
+
+.ulo-option-card.is-selected {
+    animation: ulo-pulse 0.3s ease-out;
+}
+
+/* Conditional field animations */
+.ulo-field.ulo-conditional-field {
+    transition: opacity var(--ulo-animation-duration, 0.25s) ease,
+        max-height 0.3s ease,
+        margin var(--ulo-animation-duration, 0.25s) ease;
+}
+
+/* ==========================================================================
+   Accessibility Enhancements
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .ulo-option-card,
+    .ulo-pill-toggle .ulo-pill-label,
+    .ulo-variant-label,
+    .ulo-field,
+    .ulo-animate-in {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .ulo-option-card {
+        border-width: 3px;
+    }
+
+    .ulo-option-card.is-selected {
+        outline: 3px solid var(--ulo-accent-color, #2271b1);
+        outline-offset: 2px;
+    }
+
+    .ulo-savings-badge,
+    .ulo-best-value-badge {
+        border: 2px solid #000;
+    }
+}
+
+/* Focus visible for keyboard navigation */
+.ulo-option-card:focus-within {
+    outline: 2px solid var(--ulo-accent-color, #2271b1);
+    outline-offset: 2px;
+}
+
+.ulo-pill-toggle .ulo-pill-option input:focus-visible+.ulo-pill-label,
+.ulo-variant-option input:focus-visible+.ulo-variant-label {
+    outline: 2px solid var(--ulo-accent-color, #2271b1);
+    outline-offset: 2px;
+}
+
+/* ==========================================================================
+   MODERN CARD STYLES FOR FIELD_RENDERER OUTPUT
+   Applies premium styling to actual PHP-generated HTML classes
+   ========================================================================== */
+
+/* Radio Group - Modern Card Layout */
+.ulo-radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ulo-spacing-md, 16px);
+}
+
+/* Radio Option Cards - PREMIUM DEFAULT STATE */
+.ulo-radio-option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--ulo-spacing-md, 16px);
+    padding: var(--ulo-spacing-lg, 24px);
+
+    /* Premium gradient background */
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+
+    /* Subtle accent left border for visual interest */
+    border-left: 4px solid var(--ulo-accent-color, #2271b1);
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    border-right: 1px solid rgba(0, 0, 0, 0.06);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+
+    border-radius: var(--ulo-radius, 12px);
+    cursor: pointer;
+
+    /* Elegant shadow for depth */
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.04),
+        0 4px 8px rgba(0, 0, 0, 0.02),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Subtle indicator dot on the right */
+.ulo-radio-option::after {
+    content: '';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+/* Hover state - More prominent */
+.ulo-radio-option:hover {
+    background: linear-gradient(135deg, #ffffff 0%, var(--ulo-accent-bg, #f0f7ff) 100%);
+    border-left-color: var(--ulo-accent-color, #2271b1);
+    border-top-color: var(--ulo-accent-color, #2271b1);
+    border-right-color: var(--ulo-accent-color, #2271b1);
+    border-bottom-color: var(--ulo-accent-color, #2271b1);
+    transform: translateY(-3px) scale(1.01);
+    box-shadow:
+        0 8px 16px rgba(34, 113, 177, 0.15),
+        0 4px 8px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.ulo-radio-option:hover::after {
+    background: var(--ulo-accent-color, #2271b1);
+    transform: translateY(-50%) scale(1.5);
+}
+
+/* Selected state - Maximum emphasis */
+.ulo-radio-option:has(input:checked) {
+    background: linear-gradient(135deg, var(--ulo-accent-bg, #f0f7ff) 0%, #ffffff 100%);
+    border-color: var(--ulo-accent-color, #2271b1);
+    border-left-width: 4px;
+    box-shadow:
+        0 0 0 3px rgba(34, 113, 177, 0.12),
+        0 8px 24px rgba(34, 113, 177, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    transform: translateY(-2px);
+}
+
+.ulo-radio-option:has(input:checked)::after {
+    background: var(--ulo-success-color, #00a32a);
+    width: 12px;
+    height: 12px;
+    box-shadow: 0 0 0 3px rgba(0, 163, 42, 0.2);
+}
+
+/* Custom Radio Button - Premium Design */
+.ulo-radio-option input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 26px;
+    height: 26px;
+    border: 3px solid var(--ulo-accent-color, #2271b1);
+    border-radius: 50%;
+    background: linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+    position: relative;
+    box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Radio hover glow */
+.ulo-radio-option:hover input[type="radio"] {
+    box-shadow:
+        0 0 0 4px rgba(34, 113, 177, 0.15),
+        inset 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.ulo-radio-option input[type="radio"]:checked {
+    border-color: var(--ulo-accent-color, #2271b1);
+    background: var(--ulo-accent-color, #2271b1);
+    box-shadow:
+        0 0 0 4px rgba(34, 113, 177, 0.2),
+        inset 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.ulo-radio-option input[type="radio"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.ulo-radio-option input[type="radio"]:focus-visible {
+    outline: 3px solid var(--ulo-accent-color, #2271b1);
+    outline-offset: 3px;
+}
+
+/* Radio Label - More prominent */
+.ulo-radio-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ulo-text-color, #1d2327);
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    flex-grow: 1;
+}
+
+/* Price Suffix Styles - Eye-catching */
+.ulo-price-suffix {
+    display: inline-flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ulo-accent-color, #2271b1);
+    background: rgba(34, 113, 177, 0.1);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+/* Field Header with Icon */
+.ulo-field-header {
+    display: flex;
+    align-items: center;
+    gap: var(--ulo-spacing-sm, 8px);
+    margin-bottom: var(--ulo-spacing-md, 16px);
+}
+
+.ulo-field-icon {
+    color: var(--ulo-accent-color, #2271b1);
+}
+
+.ulo-field-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Field Label Enhanced */
+.ulo-field .ulo-field-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ulo-text-color, #1d2327);
+    letter-spacing: -0.01em;
+}
+
+.ulo-required {
+    color: var(--ulo-error-color, #d63638);
+    font-weight: bold;
+}
+
+/* Field Description Enhanced */
+.ulo-field .ulo-field-description {
+    font-size: 13px;
+    color: var(--ulo-text-muted, #646970);
+    margin-top: var(--ulo-spacing-sm, 8px);
+    line-height: 1.5;
+}
+
+/* Card Style Variants */
+/* Minimal variant */
+.ulo-product-options[data-card-style="minimal"] .ulo-radio-option {
+    border: none;
+    border-bottom: 2px solid var(--ulo-border-color, #e2e4e7);
+    border-radius: 0;
+    padding-left: 0;
+    padding-right: 0;
+    background: transparent;
+}
+
+.ulo-product-options[data-card-style="minimal"] .ulo-radio-option:hover {
+    transform: none;
+    box-shadow: none;
+    border-bottom-color: var(--ulo-accent-color, #2271b1);
+}
+
+.ulo-product-options[data-card-style="minimal"] .ulo-radio-option:has(input:checked) {
+    border-bottom-color: var(--ulo-accent-color, #2271b1);
+    background: transparent;
+    box-shadow: none;
+}
+
+/* Filled variant */
+.ulo-product-options[data-card-style="filled"] .ulo-radio-option {
+    background: var(--ulo-bg-alt, #f8f9fa);
+    border: 2px solid transparent;
+}
+
+.ulo-product-options[data-card-style="filled"] .ulo-radio-option:hover {
+    background: var(--ulo-accent-bg, #f0f7ff);
+    border-color: var(--ulo-accent-color, #2271b1);
+}
+
+.ulo-product-options[data-card-style="filled"] .ulo-radio-option:has(input:checked) {
+    background: var(--ulo-accent-bg, #f0f7ff);
+    border-color: var(--ulo-accent-color, #2271b1);
+}
+
+/* Elegant variant */
+.ulo-product-options[data-card-style="elegant"] .ulo-radio-option {
+    border: 1px solid var(--ulo-border-color, #e2e4e7);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.ulo-product-options[data-card-style="elegant"] .ulo-radio-option:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Number Input Modern Style */
+.ulo-field-number input[type="number"] {
+    width: 100px;
+    padding: var(--ulo-spacing-md, 16px);
+    border: 2px solid var(--ulo-border-color, #e2e4e7);
+    border-radius: var(--ulo-radius, 8px);
+    font-size: 16px;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.ulo-field-number input[type="number"]:focus {
+    border-color: var(--ulo-accent-color, #2271b1);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(34, 113, 177, 0.15);
+}
+
+/* Animation for conditional fields */
+.ulo-field.ulo-conditional-field {
+    transition: opacity 0.3s ease, max-height 0.3s ease, margin 0.3s ease;
+}
+
+.ulo-field[data-visible="false"] {
+    opacity: 0;
+    max-height: 0;
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.ulo-field[data-visible="true"] {
+    opacity: 1;
+    max-height: 1000px;
+}
+
+/* Responsive mobile styles */
+@media (max-width: 480px) {
+    .ulo-radio-option {
+        padding: var(--ulo-spacing-sm, 8px) var(--ulo-spacing-md, 16px);
+    }
+
+    .ulo-radio-label {
+        font-size: 14px;
+    }
+
+    .ulo-price-suffix {
+        display: block;
+        margin-left: 0;
+        margin-top: 4px;
+    }
+}
+
+/* ==========================================================================
+   MODERN TOGGLE/SWITCH CHECKBOX STYLES
+   Premium iOS-style toggle for single checkboxes
+   ========================================================================== */
+
+/* Checkbox Option Container - Premium Card */
+.ulo-checkbox-option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ulo-spacing-lg, 24px);
+    padding: var(--ulo-spacing-lg, 24px);
+
+    /* Premium gradient background */
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+
+    /* Subtle accent left border */
+    border-left: 4px solid var(--ulo-accent-color, #2271b1);
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    border-right: 1px solid rgba(0, 0, 0, 0.06);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+
+    border-radius: var(--ulo-radius, 12px);
+    cursor: pointer;
+
+    /* Elegant shadow for depth */
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.04),
+        0 4px 8px rgba(0, 0, 0, 0.02),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ulo-checkbox-option:hover {
+    background: linear-gradient(135deg, #ffffff 0%, var(--ulo-accent-bg, #f0f7ff) 100%);
+    border-color: var(--ulo-accent-color, #2271b1);
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 16px rgba(34, 113, 177, 0.15),
+        0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.ulo-checkbox-option:has(input:checked) {
+    background: linear-gradient(135deg, var(--ulo-accent-bg, #f0f7ff) 0%, #ffffff 100%);
+    border-color: var(--ulo-accent-color, #2271b1);
+    box-shadow:
+        0 0 0 3px rgba(34, 113, 177, 0.12),
+        0 8px 24px rgba(34, 113, 177, 0.2);
+}
+
+/* Hidden native checkbox */
+.ulo-checkbox-option input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+/* Modern iOS-style Toggle Switch */
+.ulo-checkbox-option::after {
+    content: '';
+    position: relative;
+    flex-shrink: 0;
+    width: 56px;
+    height: 32px;
+    background: linear-gradient(180deg, #d4d4d8 0%, #e4e4e7 100%);
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.1),
+        0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Toggle knob */
+.ulo-checkbox-option::before {
+    content: '';
+    position: absolute;
+    right: 48px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 26px;
+    height: 26px;
+    background: linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%);
+    border-radius: 50%;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.2),
+        0 1px 2px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    z-index: 1;
+}
+
+/* Checked state - Toggle moves right */
+.ulo-checkbox-option:has(input:checked)::after {
+    background: linear-gradient(180deg, var(--ulo-accent-color, #2271b1) 0%, #1a5a8e 100%);
+    box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.15),
+        0 2px 8px rgba(34, 113, 177, 0.4);
+}
+
+.ulo-checkbox-option:has(input:checked)::before {
+    right: 24px;
+    background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%);
+    box-shadow:
+        0 2px 8px rgba(34, 113, 177, 0.3),
+        0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Checkbox Label */
+.ulo-checkbox-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ulo-text-color, #1d2327);
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    flex-grow: 1;
+}
+
+/* Focus state for accessibility */
+.ulo-checkbox-option:focus-within {
+    outline: 3px solid var(--ulo-accent-color, #2271b1);
+    outline-offset: 3px;
+}
+
+/* Hover effect on toggle */
+.ulo-checkbox-option:hover::after {
+    background: linear-gradient(180deg, #a1a1aa 0%, #d4d4d8 100%);
+}
+
+.ulo-checkbox-option:has(input:checked):hover::after {
+    background: linear-gradient(180deg, #1a5a8e 0%, var(--ulo-accent-color, #2271b1) 100%);
+}
+
+/* Responsive mobile adjustments */
+@media (max-width: 480px) {
+    .ulo-checkbox-option {
+        padding: var(--ulo-spacing-md, 16px);
+    }
+
+    .ulo-checkbox-option::after {
+        width: 48px;
+        height: 28px;
+    }
+
+    .ulo-checkbox-option::before {
+        width: 22px;
+        height: 22px;
+        right: 43px;
+    }
+
+    .ulo-checkbox-option:has(input:checked)::before {
+        right: 21px;
+    }
+
+    .ulo-checkbox-label {
+        font-size: 14px;
+    }
+}

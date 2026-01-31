@@ -1,0 +1,94 @@
+# Ultra-Light Product Options - Git Ignore File
+
+# ====================
+# OS Generated Files
+# ====================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ====================
+# IDE / Editor Files
+# ====================
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+.project
+.settings/
+.buildpath
+nbproject/
+
+# ====================
+# Dependencies
+# ====================
+node_modules/
+vendor/
+bower_components/
+
+# ====================
+# Build Files
+# ====================
+*.map
+*.min.css.map
+*.min.js.map
+
+# ====================
+# WordPress Specific
+# ====================
+wp-config.php
+wp-content/debug.log
+wp-content/uploads/
+*.log
+
+# ====================
+# Development Files
+# ====================
+.env
+.env.local
+.env.*.local
+*.sql
+*.sql.gz
+phpcs.xml
+phpunit.xml
+.phpcs.xml.dist
+.php-cs-fixer.cache
+.phpunit.result.cache
+phpstan.neon
+tests/
+codeception.yml
+.travis.yml
+.github/
+Gruntfile.js
+Gulpfile.js
+package.json
+package-lock.json
+composer.json
+composer.lock
+webpack.config.js
+rollup.config.js
+
+# ====================
+# Temp & Cache Files
+# ====================
+*.tmp
+*.temp
+*.cache
+.sass-cache/
+*.bak
+
+# ====================
+# Plugin Specific
+# ====================
+# Secure uploads (user files should not be in repo)
+/uploads/
+/ulo-secure/
+/ulo-temp/
