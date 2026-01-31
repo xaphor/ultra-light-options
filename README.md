@@ -7,6 +7,40 @@ A lightweight, performance-focused WooCommerce plugin for adding custom product 
 ![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4)
 ![License](https://img.shields.io/badge/License-GPL%20v2-green)
 
+---
+
+## 💡 Why This Plugin?
+
+We've been there. You need to add custom product options to your WooCommerce store—things like engraving text, gift wrapping, installation services, or custom measurements. You search for a solution and find plenty of plugins... but here's the catch:
+
+**The best features are always behind a paywall.**
+
+Popular plugins like *WooCommerce Product Add-Ons*, *YITH WooCommerce Product Add-Ons*, *Extra Product Options by ThemeComplete*, and others offer great functionality—but conditional logic, formula-based pricing, file uploads, and variation-specific options? Those require a **$50–$199/year** premium license.
+
+We built **Ultra-Light Product Options** because we believe these essential features should be **free and open-source**.
+
+### What You Get (100% Free):
+
+| Feature | Other Plugins | Ultra-Light Options |
+|---------|---------------|---------------------|
+| Conditional Logic | 💰 Premium | ✅ Free |
+| Formula-Based Pricing | 💰 Premium | ✅ Free |
+| Variation-Specific Fields | 💰 Premium | ✅ Free |
+| File Uploads | 💰 Premium | ✅ Free |
+| Attention Badges | ❌ Not Available | ✅ Free |
+| Zero jQuery / Lightweight | ❌ Rarely | ✅ Yes |
+
+### Our Philosophy
+
+- **No Artificial Limitations** — Every feature works out of the box
+- **Performance First** — Vanilla JS, no jQuery bloat, zero layout shift
+- **Developer Friendly** — Clean code, hooks, filters, and GPL licensed
+- **Community Driven** — Built by developers, for developers
+
+> *"We got tired of paying yearly subscriptions for basic functionality. So we built our own—and we're giving it away."*
+
+---
+
 ## Features
 
 - **Custom Product Options** - Add text fields, textareas, radio buttons, checkboxes, dropdowns, date pickers, file uploads, and more
