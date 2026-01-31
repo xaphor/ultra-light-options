@@ -32,12 +32,12 @@ I built **Ultra-Light Product Options** because we believe these essential featu
 
 ### My Philosophy
 
-- **No Artificial Limitations** — Every feature works out of the box
-- **Performance First** — Vanilla JS, no jQuery bloat, zero layout shift
-- **Developer Friendly** — Clean code, hooks, filters, and GPL licensed
-- **Community Driven** — Built by developers, for developers
+- **No Artificial Limitations** - Every feature works out of the box
+- **Performance First** - Vanilla JS, no jQuery bloat, zero layout shift
+- **Developer Friendly** - Clean code, hooks, filters, and GPL licensed
+- **Community Driven** - Built by developers, for developers
 
-> *"I got tired of paying yearly subscriptions for basic functionality. So we built our own—and we're giving it away."*
+> *"I got tired of paying yearly subscriptions for basic functionality. So I built my own, and I'm giving it away."*
 
 ---
 
