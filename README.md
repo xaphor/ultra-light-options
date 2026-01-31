@@ -11,13 +11,13 @@ A lightweight, performance-focused WooCommerce plugin for adding custom product 
 
 ## Why This Plugin?
 
-We've been there. You need to add custom product options to your WooCommerce store—things like engraving text, gift wrapping, installation services, or custom measurements. You search for a solution and find plenty of plugins... but here's the catch:
+We've been there. You need to add custom product options to your WooCommerce store - things like engraving text, gift wrapping, installation services, or custom measurements. You search for a solution and find plenty of plugins... but here's the catch:
 
 The best features are always behind a paywall.
 
-Popular plugins like *WooCommerce Product Add-Ons*, *YITH WooCommerce Product Add-Ons*, *Extra Product Options by ThemeComplete*, and others offer great functionality—but conditional logic, formula-based pricing, file uploads, and variation-specific options? Those require a $50–$199/year premium license.
+Popular plugins like *WooCommerce Product Add-Ons*, *YITH WooCommerce Product Add-Ons*, *Extra Product Options by ThemeComplete*, and others offer great functionality, but conditional logic, formula-based pricing, file uploads, and variation-specific options? Those require a $50–$199/year premium license.
 
-We built **Ultra-Light Product Options** because we believe these essential features should be **free and open-source**.
+I built **Ultra-Light Product Options** because we believe these essential features should be **free and open-source**.
 
 ### What You Get (100% Free):
 
@@ -37,7 +37,7 @@ We built **Ultra-Light Product Options** because we believe these essential feat
 - **Developer Friendly** — Clean code, hooks, filters, and GPL licensed
 - **Community Driven** — Built by developers, for developers
 
-> *"We got tired of paying yearly subscriptions for basic functionality. So we built our own—and we're giving it away."*
+> *"I got tired of paying yearly subscriptions for basic functionality. So we built our own—and we're giving it away."*
 
 ---
 
