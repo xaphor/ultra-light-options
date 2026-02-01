@@ -46,6 +46,7 @@ bower_components/
 # ====================
 wp-config.php
 wp-content/debug.log
+debug_log.txt
 wp-content/uploads/
 *.log
 
