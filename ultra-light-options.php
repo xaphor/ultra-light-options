@@ -367,4 +367,10 @@ add_action('init', static function (): void {
  */
 add_action('plugins_loaded', static function (): void {
     Ultra_Light_Options::get_instance()->init();
+
+    // Declare HPOS compatibility.
+    if (class_exists(\Automattic\WooCommerce\Utilities\FeaturesUtil::class)) {
+        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', ULO_PLUGIN_FILE, true);
+    }
 }, 20); // Priority 20 ensures WooCommerce loads first
+

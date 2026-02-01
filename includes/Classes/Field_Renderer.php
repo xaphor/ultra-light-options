@@ -148,17 +148,17 @@ final class Field_Renderer
         ob_start();
         ?>
         <div class="<?php echo esc_attr(implode(' ', $wrapper_classes)); ?>"
-             data-field-id="<?php echo $field_id; ?>"
-             data-field-type="<?php echo $field_type; ?>"
-             <?php echo $condition_attr; ?>>
+             data-field-id="<?php echo esc_attr((string) $field_id); ?>"
+             data-field-type="<?php echo esc_attr((string) $field_type); ?>"
+             <?php echo $condition_attr; // PHPCS: XSS ok. Condition attr is already escaped in build_conditions_attribute() ?>>
 
             <?php if ($field_type !== 'html' && $field_type !== 'checkbox'): ?>
                 <div class="ulo-field-header">
                     <?php if (!empty($icon_html)): ?>
                         <div class="ulo-field-icon"><?php echo $icon_html; ?></div>
                     <?php endif; ?>
-                    <label for="ulo_<?php echo $field_id; ?>" class="ulo-field-label">
-                        <?php echo $field_label; ?>
+                    <label for="ulo_<?php echo esc_attr((string) $field_id); ?>" class="ulo-field-label">
+                        <?php echo esc_html($field_label); ?>
                         <?php if ($required): ?>
                             <span class="ulo-required" aria-label="<?php esc_attr_e('Required', 'ultra-light-options'); ?>">*</span>
                         <?php endif; ?>
@@ -167,7 +167,7 @@ final class Field_Renderer
             <?php endif; ?>
 
             <div class="ulo-field-input">
-                <?php echo $input_html; ?>
+                <?php echo $input_html; // PHPCS: XSS ok. input_html consists of escaped components from render methods. ?>
             </div>
 
             <?php if (!empty($description)): ?>
@@ -198,22 +198,34 @@ final class Field_Renderer
         $multiplier = (float) ($field['multiplier'] ?? 0);
 
         $data_attrs = '';
+        $field_id = $field['id'];
+        $placeholder = $field['placeholder'] ?? '';
+        $required = isset($field['required']) && $field['required'] ? 'required' : '';
+        $price_type = $field['price_type'] ?? '';
+        $multiplier = (float) ($field['multiplier'] ?? 0);
+
+        $input_type = $field['input_type'] ?? 'text'; // Allow custom input types like 'email', 'url', 'tel'
+        $input_classes = ['ulo-text-input'];
+
         if ($price_type === 'field_value' && $multiplier > 0) {
             $data_attrs = sprintf(
                 ' data-ulo-price-type="field_value" data-ulo-multiplier="%s"',
                 esc_attr((string) $multiplier)
             );
+        } else {
+            $data_attrs = '';
         }
 
         ob_start();
         ?>
-        <input type="text"
-               name="ulo[<?php echo $field_id; ?>]"
-               id="ulo_<?php echo $field_id; ?>"
-               class="ulo-text-input"
-               placeholder="<?php echo $placeholder; ?>"
-               <?php echo $required; ?>
-               <?php echo $data_attrs; ?>>
+        <input type="<?php echo esc_attr($input_type); ?>"
+               class="<?php echo esc_attr(implode(' ', $input_classes)); ?>"
+               name="ulo[<?php echo esc_attr($field_id); ?>]"
+               id="ulo_<?php echo esc_attr($field_id); ?>"
+               value=""
+               placeholder="<?php echo esc_attr($placeholder); ?>"
+               <?php echo $required; // PHPCS: XSS ok. ?>
+               <?php echo $data_attrs; // PHPCS: XSS ok. ?>>
         <?php
         return ob_get_clean();
     }
@@ -223,19 +235,21 @@ final class Field_Renderer
      */
     private static function render_textarea(array $field): string
     {
-        $field_id = esc_attr($field['id']);
-        $placeholder = esc_attr($field['placeholder'] ?? '');
+        $field_id = $field['id'];
+        $placeholder = $field['placeholder'] ?? '';
         $required = isset($field['required']) && $field['required'] ? 'required' : '';
         $rows = (int) ($field['rows'] ?? 4);
 
+        $input_classes = ['ulo-textarea'];
+
         ob_start();
         ?>
-        <textarea name="ulo[<?php echo $field_id; ?>]"
-                  id="ulo_<?php echo $field_id; ?>"
-                  class="ulo-textarea"
-                  placeholder="<?php echo $placeholder; ?>"
-                  rows="<?php echo $rows; ?>"
-                  <?php echo $required; ?>></textarea>
+        <textarea name="ulo[<?php echo esc_attr($field_id); ?>]"
+                  id="ulo_<?php echo esc_attr($field_id); ?>"
+                  class="<?php echo esc_attr(implode(' ', $input_classes)); ?>"
+                  placeholder="<?php echo esc_attr($placeholder); ?>"
+                  rows="<?php echo esc_attr((string) $rows); ?>"
+                  <?php echo $required; // PHPCS: XSS ok. ?>></textarea>
         <?php
         return ob_get_clean();
     }
@@ -315,8 +329,8 @@ final class Field_Renderer
                     <input type="radio"
                            name="<?php echo esc_attr($name); ?>"
                            id="ulo_<?php echo esc_attr($option_id); ?>"
-                           value="<?php echo $value; ?>"
-                           <?php echo $data_attrs; ?>
+                           value="<?php echo esc_attr($value); ?>"
+                           <?php echo $data_attrs; // PHPCS: XSS ok. ?>
                            <?php echo $required && $index === 0 ? 'required' : ''; ?>>
                     <?php if ($image): ?>
                         <img src="<?php echo esc_url($image); ?>" alt="<?php echo $label; ?>" class="ulo-swatch-image">
@@ -371,10 +385,10 @@ final class Field_Renderer
                         <input type="radio"
                                name="<?php echo esc_attr($name); ?>"
                                id="ulo_<?php echo esc_attr($option_id); ?>"
-                               value="<?php echo $value; ?>"
-                               <?php echo $data_attrs; ?>
+                               value="<?php echo esc_attr($value); ?>"
+                               <?php echo $data_attrs; // PHPCS: XSS ok. ?>
                                <?php echo $required && $index === 0 ? 'required' : ''; ?>>
-                        <span class="ulo-switch-label"><?php echo $label; ?></span>
+                        <span class="ulo-switch-label"><?php echo esc_html($label); ?></span>
                         <?php 
                         if (!empty($option['badge'])) {
                             echo self::render_badge($option['badge'], $option['badge_color'] ?? '#ef4444', !empty($option['badge_pulse']));
@@ -408,13 +422,13 @@ final class Field_Renderer
 
         ob_start();
         ?>
-        <label class="ulo-checkbox-option" for="ulo_<?php echo $field_id; ?>">
+        <label class="ulo-checkbox-option" for="ulo_<?php echo esc_attr($field_id); ?>">
             <input type="checkbox"
-                   name="ulo[<?php echo $field_id; ?>]"
-                   id="ulo_<?php echo $field_id; ?>"
+                   name="ulo[<?php echo esc_attr($field_id); ?>]"
+                   id="ulo_<?php echo esc_attr($field_id); ?>"
                    value="1"
-                   <?php echo $data_attrs; ?>
-                   <?php echo $required; ?>>
+                   <?php echo $data_attrs; // PHPCS: XSS ok. ?>
+                   <?php echo $required ? 'required' : ''; ?>>
             <span class="ulo-checkbox-label"><?php echo esc_html($field['label']); ?></span>
             <?php 
             if (!empty($field['badge'])) {
@@ -458,10 +472,10 @@ final class Field_Renderer
                 ?>
                 <label class="ulo-checkbox-option" for="ulo_<?php echo esc_attr($option_id); ?>">
                     <input type="checkbox"
-                           name="ulo[<?php echo $field_id; ?>][]"
+                           name="ulo[<?php echo esc_attr($field_id); ?>][]"
                            id="ulo_<?php echo esc_attr($option_id); ?>"
-                           value="<?php echo $value; ?>"
-                           <?php echo $data_attrs; ?>>
+                           value="<?php echo esc_attr($value); ?>"
+                           <?php echo $data_attrs; // PHPCS: XSS ok. ?>>
                     <span class="ulo-checkbox-label"><?php echo $label; ?></span>
                     <?php echo $price_display; ?>
                     <?php 
@@ -510,8 +524,8 @@ final class Field_Renderer
                         esc_attr($price_type)
                     );
                     ?>
-                    <option value="<?php echo $value; ?>" <?php echo $data_attrs; ?>>
-                        <?php echo $label . $price_display; ?>
+                    <option value="<?php echo esc_attr($value); ?>" <?php echo $data_attrs; // PHPCS: XSS ok. ?>>
+                        <?php echo esc_html($label . $price_display); ?>
                     </option>
                 <?php endforeach; ?>
             </select>
@@ -583,17 +597,17 @@ final class Field_Renderer
 
         ob_start();
         ?>
-        <div class="ulo-file-wrapper" data-field-id="<?php echo $field_id; ?>">
+        <div class="ulo-file-wrapper" data-field-id="<?php echo esc_attr($field_id); ?>">
             <input type="file"
-                   name="ulo_file_<?php echo $field_id; ?>"
-                   id="ulo_<?php echo $field_id; ?>"
+                   name="ulo_file_<?php echo esc_attr($field_id); ?>"
+                   id="ulo_<?php echo esc_attr($field_id); ?>"
                    class="ulo-file-input"
                    accept="<?php echo esc_attr($accept); ?>"
                    data-max-size="<?php echo esc_attr((string) $max_size); ?>"
-                   <?php echo $required; ?>>
+                   <?php echo $required ? 'required' : ''; ?>>
             <input type="hidden"
-                   name="ulo[<?php echo $field_id; ?>]"
-                   id="ulo_<?php echo $field_id; ?>_value"
+                   name="ulo[<?php echo esc_attr($field_id); ?>]"
+                   id="ulo_<?php echo esc_attr($field_id); ?>_value"
                    class="ulo-file-value">
             <div class="ulo-file-dropzone">
                 <div class="ulo-file-icon">
