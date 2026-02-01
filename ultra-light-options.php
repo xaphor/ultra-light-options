@@ -61,7 +61,9 @@ function ulo_woocommerce_missing_notice(): void
     ?>
     <div class="notice notice-error">
         <p>
-            <strong><?php esc_html_e('Ultra-Light Product Options', 'ultra-light-options'); ?>:</strong>
+            <strong>
+                <?php esc_html_e('Ultra-Light Product Options', 'ultra-light-options'); ?>:
+            </strong>
             <?php esc_html_e('This plugin requires WooCommerce to be installed and active.', 'ultra-light-options'); ?>
         </p>
     </div>
@@ -217,8 +219,8 @@ final class Ultra_Light_Options
         }
 
         // Initialize compatibility layers
-        if (class_exists('\\ULO\\Compatibility\\Modern_Cart')) {
-            \\ULO\\Compatibility\\Modern_Cart::get_instance();
+        if (class_exists('\ULO\Compatibility\Modern_Cart')) {
+            \ULO\Compatibility\Modern_Cart::get_instance();
         }
     }
 
@@ -283,7 +285,9 @@ final class Ultra_Light_Options
             ?>
             <div class="notice notice-success is-dismissible">
                 <p>
-                    <strong><?php esc_html_e('Ultra-Light Product Options', 'ultra-light-options'); ?>:</strong>
+                    <strong>
+                        <?php esc_html_e('Ultra-Light Product Options', 'ultra-light-options'); ?>:
+                    </strong>
                     <?php esc_html_e('Data successfully migrated from Variation Product Options.', 'ultra-light-options'); ?>
                 </p>
             </div>
