@@ -517,6 +517,12 @@ class ULOFrontend {
 
         const checkboxes = fieldEl.querySelectorAll('input[type="checkbox"]');
         if (checkboxes.length > 0) {
+            // Single checkbox (not a group)
+            if (checkboxes.length === 1) {
+                return checkboxes[0].checked ? '1' : '';
+            }
+
+            // Checkbox group - return array of checked values
             const values = [];
             checkboxes.forEach(cb => {
                 if (cb.checked) values.push(cb.value);
