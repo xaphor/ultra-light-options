@@ -215,6 +215,11 @@ final class Ultra_Light_Options
                 \ULO\Frontend\ULO_Frontend::get_instance();
             }
         }
+
+        // Initialize compatibility layers
+        if (class_exists('\\ULO\\Compatibility\\Modern_Cart')) {
+            \\ULO\\Compatibility\\Modern_Cart::get_instance();
+        }
     }
 
     /**
