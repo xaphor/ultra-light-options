@@ -223,6 +223,10 @@ class ULOBuilder {
                                 <input type="radio" name="ulo-pricing-type" value="field_value">
                                 <span class="ulo-pricing-type-label">${uloAdmin.i18n.fieldValue}</span>
                             </label>
+                            <label class="ulo-pricing-type-option">
+                                <input type="radio" name="ulo-pricing-type" value="tiered">
+                                <span class="ulo-pricing-type-label">Tiered Pricing</span>
+                            </label>
                         </div>
 
                         <!-- Flat fee fields -->
@@ -255,6 +259,37 @@ class ULOBuilder {
                             <label class="ulo-builder-label">${uloAdmin.i18n.multiplier}</label>
                             <input type="number" step="0.01" class="ulo-builder-input" id="ulo-field-multiplier" value="1" placeholder="1">
                             <p class="ulo-builder-description">${uloAdmin.i18n.multiplierDesc}</p>
+                        </div>
+
+                        <!-- Tiered pricing fields -->
+                        <div class="ulo-pricing-fields" data-pricing-type="tiered">
+                            <div class="ulo-tiered-pricing-config">
+                                <div class="ulo-builder-row">
+                                    <label class="ulo-builder-label">Minimum Price (floor)</label>
+                                    <input type="number" step="0.01" class="ulo-builder-input" id="ulo-tiered-base-price" value="0" placeholder="0">
+                                    <p class="ulo-builder-description">Final price = MAX(Minimum Price, Price/Unit × Qty)</p>
+                                </div>
+
+                                <div class="ulo-builder-row">
+                                    <label class="ulo-builder-label">Price Tiers</label>
+                                    <table class="ulo-tiers-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Qty From</th>
+                                                <th>Qty To</th>
+                                                <th>Price/Unit</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="ulo-tiers-list"></tbody>
+                                    </table>
+                                    <button type="button" class="button ulo-add-tier-btn">+ Add Tier</button>
+                                </div>
+                                <div class="ulo-tiered-preview">
+                                    <label class="ulo-builder-label">Preview</label>
+                                    <div id="ulo-tiered-preview-content" class="ulo-preview-box"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -451,6 +486,19 @@ class ULOBuilder {
 
         // Test formula button
         this.panel?.querySelector('.ulo-test-formula-btn')?.addEventListener('click', () => this.testFormula());
+
+        // Add tier button for tiered pricing
+        this.panel?.querySelector('.ulo-add-tier-btn')?.addEventListener('click', () => this.addTier());
+
+        // Tier table event delegation for remove and input changes
+        this.panel?.querySelector('#ulo-tiers-list')?.addEventListener('click', (e) => {
+            if (e.target.classList.contains('ulo-remove-tier-btn')) {
+                e.target.closest('tr').remove();
+                this.updateTieredPreview();
+            }
+        });
+        this.panel?.querySelector('#ulo-tiers-list')?.addEventListener('input', () => this.updateTieredPreview());
+        this.panel?.querySelector('#ulo-tiered-base-price')?.addEventListener('input', () => this.updateTieredPreview());
 
         // Field label auto-generate name
         this.panel?.querySelector('#ulo-field-label')?.addEventListener('input', (e) => {
@@ -939,6 +987,12 @@ class ULOBuilder {
                 const multiplierInput = this.panel?.querySelector('#ulo-field-multiplier');
                 if (multiplierInput) multiplierInput.value = field.pricing.multiplier;
             }
+            // Tiered pricing restoration
+            if (field.pricing.type === 'tiered') {
+                const basePriceInput = this.panel?.querySelector('#ulo-tiered-base-price');
+                if (basePriceInput) basePriceInput.value = field.pricing.base_price || 0;
+                this.populateTiers(field.pricing.tiers);
+            }
         }
 
         // Populate conditions
@@ -1199,6 +1253,10 @@ class ULOBuilder {
                 case 'field_value':
                     field.pricing.multiplier = parseFloat(this.panel?.querySelector('#ulo-field-multiplier')?.value) || 1;
                     break;
+                case 'tiered':
+                    field.pricing.base_price = parseFloat(this.panel?.querySelector('#ulo-tiered-base-price')?.value) || 0;
+                    field.pricing.tiers = this.collectTiers();
+                    break;
             }
         }
 
@@ -1265,6 +1323,129 @@ class ULOBuilder {
         });
 
         return conditions;
+    }
+
+    /**
+     * Add a tier row to the tiered pricing table
+     * @param {Object} tier - Tier data (optional)
+     */
+    addTier(tier = null) {
+        const tiersList = this.panel?.querySelector('#ulo-tiers-list');
+        if (!tiersList) return;
+
+        const existingRows = tiersList.querySelectorAll('tr').length;
+        const qtyFrom = tier?.qty_from ?? (existingRows === 0 ? 1 : '');
+        const qtyTo = tier?.qty_to ?? '';
+        const pricePerUnit = tier?.price_per_unit ?? '';
+
+        const row = document.createElement('tr');
+        row.className = 'ulo-tier-row';
+        row.innerHTML = `
+            <td><input type="number" class="ulo-tier-qty-from" value="${qtyFrom}" min="1" placeholder="1"></td>
+            <td><input type="number" class="ulo-tier-qty-to" value="${qtyTo}" min="1" placeholder="∞ (leave empty)"></td>
+            <td><input type="number" step="0.01" class="ulo-tier-price" value="${pricePerUnit}" placeholder="0.00"></td>
+            <td><button type="button" class="button-link ulo-remove-tier-btn" title="Remove">✕</button></td>
+        `;
+
+        tiersList.appendChild(row);
+        this.updateTieredPreview();
+    }
+
+    /**
+     * Collect tiers data from the table
+     * @returns {Array} Tiers array
+     */
+    collectTiers() {
+        const tiers = [];
+        this.panel?.querySelectorAll('.ulo-tier-row').forEach(row => {
+            const qtyFrom = parseInt(row.querySelector('.ulo-tier-qty-from')?.value) || 1;
+            const qtyToValue = row.querySelector('.ulo-tier-qty-to')?.value;
+            const qtyTo = qtyToValue ? parseInt(qtyToValue) : null;
+            const pricePerUnit = parseFloat(row.querySelector('.ulo-tier-price')?.value) || 0;
+
+            tiers.push({
+                qty_from: qtyFrom,
+                qty_to: qtyTo,
+                price_per_unit: pricePerUnit
+            });
+        });
+
+        // Sort by qty_from ascending
+        tiers.sort((a, b) => a.qty_from - b.qty_from);
+        return tiers;
+    }
+
+    /**
+     * Populate tiers table from saved data
+     * @param {Array} tiers - Tiers array
+     */
+    populateTiers(tiers) {
+        const tiersList = this.panel?.querySelector('#ulo-tiers-list');
+        if (!tiersList) return;
+
+        tiersList.innerHTML = '';
+        if (Array.isArray(tiers) && tiers.length > 0) {
+            tiers.forEach(tier => this.addTier(tier));
+        } else {
+            // Add default first tier
+            this.addTier({ qty_from: 1, qty_to: null, price_per_unit: 0 });
+        }
+    }
+
+    /**
+     * Update tiered pricing preview
+     */
+    updateTieredPreview() {
+        const previewEl = this.panel?.querySelector('#ulo-tiered-preview-content');
+        if (!previewEl) return;
+
+        const basePrice = parseFloat(this.panel?.querySelector('#ulo-tiered-base-price')?.value) || 0;
+        const tiers = this.collectTiers();
+
+        if (tiers.length === 0) {
+            previewEl.innerHTML = '<em>Add tiers to see preview</em>';
+            return;
+        }
+
+        const currency = uloAdmin.currency || '';
+        let previewHtml = '<table class="ulo-preview-table"><thead><tr><th>Qty</th><th>Tier Price/Unit</th><th>Option Addon</th></tr></thead><tbody>';
+
+        // Show sample calculations for different quantities
+        const sampleQtys = [1, 2, 5, 10, 25, 50, 100];
+        sampleQtys.forEach(qty => {
+            const tier = this.getTierForQuantity(tiers, qty);
+            if (tier) {
+                const unitPrice = tier.price_per_unit;
+                const tierTotal = unitPrice * qty;
+                // Base price is a FLOOR (minimum), not additive
+                const addonTotal = Math.max(basePrice, tierTotal);
+                previewHtml += `<tr><td>${qty}</td><td>${currency}${unitPrice.toFixed(2)}</td><td>${currency}${addonTotal.toFixed(2)}</td></tr>`;
+            }
+        });
+
+        previewHtml += '</tbody></table>';
+        previewHtml += '<p class="ulo-preview-note"><small><em>Option Addon = MAX(Min Price, Tier×Qty). Added to product price.</em></small></p>';
+        previewEl.innerHTML = previewHtml;
+    }
+
+
+
+    /**
+     * Get applicable tier for a given quantity
+     * @param {Array} tiers - Tiers array
+     * @param {number} qty - Quantity
+     * @returns {Object|null} Matching tier
+     */
+    getTierForQuantity(tiers, qty) {
+        for (const tier of tiers) {
+            const from = tier.qty_from || 1;
+            const to = tier.qty_to || Infinity;
+            if (qty >= from && qty <= to) {
+                return tier;
+            }
+        }
+        // Fall back to last tier if quantity exceeds all
+        return tiers[tiers.length - 1] || null;
     }
 
     /**

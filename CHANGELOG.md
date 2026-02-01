@@ -5,7 +5,22 @@ All notable changes to Ultra-Light Product Options will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-02-01
+
+### Added
+- **Tiered/Volume Pricing** - New pricing type for quantity-based discounts
+  - Intuitive tier table builder UI with live preview
+  - Define unlimited quantity tiers with per-unit pricing
+  - Minimum price floor to ensure minimum charge
+  - Works seamlessly with radio, checkbox, and other field types
+
+### Fixed
+- Tiered pricing now correctly integrates with WooCommerce cart (no double-multiplication)
+- Field-level pricing type now takes priority over option-level for radio/select fields
+- Preview calculation matches actual cart behavior
+
 ## [2.0.0] - 2026-01-31
+
 
 ### Added
 - **Attention-Grabbing Badges** - Add customizable badges to fields and options with color picker and pulse animation

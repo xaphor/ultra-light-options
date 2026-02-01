@@ -4,8 +4,8 @@ declare(strict_types=1);
 /**
  * Plugin Name: Ultra-Light Product Options
  * Plugin URI: https://github.com/xaphor/ultra-light-options
- * Description: A lightweight, GMC-compliant WooCommerce plugin for adding custom product options with conditional logic and advanced pricing (flat, quantity-based, formula, field value). Zero Layout Shift, No jQuery.
- * Version: 2.0.0
+ * Description: A lightweight, GMC-compliant WooCommerce plugin for adding custom product options with conditional logic and advanced pricing (flat, quantity-based, tiered, formula, field value). Zero Layout Shift, No jQuery.
+ * Version: 2.1.0
  * Author: Zaffarullah
  * Author URI: https://github.com/xaphor
  * License: GPL v2 or later
@@ -18,8 +18,9 @@ declare(strict_types=1);
  * WC tested up to: 9.0
  *
  * @package UltraLightOptions
- * @version 2.0.0
+ * @version 2.1.0
  */
+
 
 namespace ULO;
 

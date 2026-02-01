@@ -1502,3 +1502,122 @@
 .ulo-option-pulse-toggle input:checked+.dashicons {
     color: #ef4444;
 }
+
+/* ==========================================================================
+   Tiered Pricing UI
+   ========================================================================== */
+
+.ulo-tiered-pricing-config {
+    padding: 15px;
+    background: #f8fafc;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+}
+
+.ulo-tiers-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+    background: #fff;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.ulo-tiers-table th {
+    background: #f1f5f9;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 500;
+    font-size: 12px;
+    color: #64748b;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.ulo-tiers-table th:last-child {
+    width: 40px;
+    text-align: center;
+}
+
+.ulo-tiers-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.ulo-tiers-table tr:last-child td {
+    border-bottom: none;
+}
+
+.ulo-tier-row input {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.ulo-tier-row input:focus {
+    border-color: var(--ulo-admin-primary);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.1);
+}
+
+.ulo-remove-tier-btn {
+    background: none !important;
+    border: none !important;
+    color: #94a3b8 !important;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px !important;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.ulo-remove-tier-btn:hover {
+    color: #ef4444 !important;
+    background: #fef2f2 !important;
+}
+
+.ulo-add-tier-btn {
+    margin-top: 5px;
+}
+
+.ulo-tiered-preview {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.ulo-preview-box {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 12px;
+}
+
+.ulo-preview-box em {
+    color: #94a3b8;
+}
+
+.ulo-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ulo-preview-table th,
+.ulo-preview-table td {
+    padding: 6px 10px;
+    text-align: left;
+    font-size: 12px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.ulo-preview-table th {
+    background: #f8fafc;
+    font-weight: 500;
+    color: #64748b;
+}
+
+.ulo-preview-table tr:last-child td {
+    border-bottom: none;
+}

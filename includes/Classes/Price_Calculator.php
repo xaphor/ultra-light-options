@@ -37,6 +37,7 @@ final class Price_Calculator
     public const PRICE_TYPE_QUANTITY_FLAT = 'quantity_flat';
     public const PRICE_TYPE_FORMULA = 'formula';
     public const PRICE_TYPE_FIELD_VALUE = 'field_value';
+    public const PRICE_TYPE_TIERED = 'tiered';
 
     /**
      * Calculate price for a single field based on its pricing type.
@@ -58,12 +59,24 @@ final class Price_Calculator
         array $all_field_values = []
     ): float {
         $field_type = $field['type'] ?? '';
-        $price_type = $field['price_type'] ?? self::PRICE_TYPE_FLAT;
         $field_id = $field['id'] ?? 'unknown';
 
         // Skip if no value selected
         if ($value === '' || $value === null || $value === false) {
             return 0.0;
+        }
+
+        // Check for field-level pricing configuration (new structure)
+        // This takes priority over option-level pricing
+        $field_pricing_type = $field['pricing']['type'] ?? null;
+
+        // If tiered pricing is set at field level, use it directly
+        if ($field_pricing_type === self::PRICE_TYPE_TIERED) {
+            return self::calculate_tiered_price(
+                $field['pricing']['tiers'] ?? [],
+                $quantity,
+                (float) ($field['pricing']['base_price'] ?? 0)
+            );
         }
 
         $calculated_price = 0.0;
@@ -76,16 +89,19 @@ final class Price_Calculator
             default => 0.0,
         };
 
+        // Determine pricing type - check field-level first, then option-level, then fallback
+        $price_type = $field_pricing_type ?? $field['price_type'] ?? self::PRICE_TYPE_FLAT;
+
         // Apply pricing type calculation
         $price_config = [
             'price' => $base_field_price,
             'price_type' => $price_type,
-            'formula' => $field['formula'] ?? '',
-            'multiplier' => (float) ($field['multiplier'] ?? 1),
+            'formula' => $field['pricing']['formula'] ?? $field['formula'] ?? '',
+            'multiplier' => (float) ($field['pricing']['multiplier'] ?? $field['multiplier'] ?? 1),
         ];
 
-        // For options-based fields, get price_type from selected option
-        if (in_array($field_type, ['radio', 'radio_switch', 'select'], true)) {
+        // For options-based fields, get price_type from selected option ONLY if not set at field level
+        if (in_array($field_type, ['radio', 'radio_switch', 'select'], true) && $field_pricing_type === null) {
             $option_config = self::get_option_config($field, $value);
             if ($option_config) {
                 $price_config['price_type'] = $option_config['price_type'] ?? self::PRICE_TYPE_FLAT;
@@ -116,8 +132,14 @@ final class Price_Calculator
                 (float) ($field['min'] ?? 0),
                 (float) ($field['max'] ?? PHP_FLOAT_MAX)
             ),
+            self::PRICE_TYPE_TIERED => self::calculate_tiered_price(
+                $field['pricing']['tiers'] ?? [],
+                $quantity,
+                (float) ($field['pricing']['base_price'] ?? 0)
+            ),
             default => $price_config['price'],
         };
+
 
         self::log_price_calculation($field_id, $price_config['price_type'], $calculated_price, [
             'base_field_price' => $base_field_price,
@@ -488,6 +510,83 @@ final class Price_Calculator
             self::PRICE_TYPE_QUANTITY_FLAT => __('Quantity-Based Flat Fee', 'ultra-light-options'),
             self::PRICE_TYPE_FORMULA => __('Formula/Calculation', 'ultra-light-options'),
             self::PRICE_TYPE_FIELD_VALUE => __('Amount × Field Value', 'ultra-light-options'),
+            self::PRICE_TYPE_TIERED => __('Tiered Pricing', 'ultra-light-options'),
         ];
     }
+
+    /**
+     * Calculate tiered pricing based on quantity.
+     *
+     * Returns a PER-UNIT additional price (not total).
+     * WooCommerce will multiply this by quantity for line total.
+     *
+     * Base price acts as a FLOOR (minimum total), converted to per-unit.
+     * Formula: MAX(base_price / qty, tier_price_per_unit)
+     *
+     * @param array $tiers Array of tier configurations.
+     * @param int $quantity Product quantity.
+     * @param float $base_price Minimum floor price (total, not per-unit).
+     * @return float Per-unit additional price.
+     */
+    private static function calculate_tiered_price(
+        array $tiers,
+        int $quantity,
+        float $base_price = 0.0
+    ): float {
+        if ($quantity <= 0) {
+            return 0.0;
+        }
+
+        if (empty($tiers)) {
+            // Return per-unit base price
+            return $base_price / $quantity;
+        }
+
+        // Sort tiers by qty_from ascending
+        usort($tiers, fn($a, $b) => ($a['qty_from'] ?? 1) <=> ($b['qty_from'] ?? 1));
+
+        // Find applicable tier
+        $applicable_tier = null;
+        foreach ($tiers as $tier) {
+            $from = (int) ($tier['qty_from'] ?? 1);
+            $to = isset($tier['qty_to']) && $tier['qty_to'] !== null && $tier['qty_to'] !== ''
+                ? (int) $tier['qty_to']
+                : PHP_INT_MAX;
+
+            if ($quantity >= $from && $quantity <= $to) {
+                $applicable_tier = $tier;
+                break;
+            }
+        }
+
+        // Fall back to last tier if quantity exceeds all defined ranges
+        if ($applicable_tier === null && !empty($tiers)) {
+            $applicable_tier = end($tiers);
+        }
+
+        if ($applicable_tier === null) {
+            return $base_price / $quantity;
+        }
+
+        $price_per_unit = (float) ($applicable_tier['price_per_unit'] ?? 0);
+
+        // Calculate what per-unit price would give the floor (base_price) as total
+        $floor_per_unit = $base_price / $quantity;
+
+        // Return the GREATER of: tier per-unit OR floor per-unit
+        // This ensures the total (when multiplied by qty) meets the minimum
+        $calculated_per_unit = max($floor_per_unit, $price_per_unit);
+
+        self::log_price_calculation('tiered', self::PRICE_TYPE_TIERED, $calculated_per_unit, [
+            'base_price' => $base_price,
+            'quantity' => $quantity,
+            'tier_price_per_unit' => $price_per_unit,
+            'floor_per_unit' => $floor_per_unit,
+            'calculated_per_unit' => $calculated_per_unit,
+            'tier' => $applicable_tier,
+        ]);
+
+        return max(0.0, $calculated_per_unit);
+    }
+
 }

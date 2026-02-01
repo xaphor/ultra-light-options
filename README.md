@@ -25,6 +25,7 @@ I built **Ultra-Light Product Options** because we believe these essential featu
 |---------|---------------|---------------------|
 | Conditional Logic | 💰 Premium | ✅ Free |
 | Formula-Based Pricing | 💰 Premium | ✅ Free |
+| **Tiered/Volume Pricing** | 💰 Premium | ✅ Free |
 | Variation-Specific Fields | 💰 Premium | ✅ Free |
 | File Uploads | 💰 Premium | ✅ Free |
 | Attention Badges | ❌ Not Available | ✅ Free |
@@ -103,8 +104,9 @@ Within each group, you can add:
 
 - **Flat** - Fixed price addition (e.g., +$10)
 - **Quantity** - Price per unit (e.g., +$2/item)
-- **Percentage** - Percentage of base price (e.g., +10%)
+- **Tiered/Volume** - Volume-based discounts with tier table (e.g., 1-10: $5/ea, 11-50: $4/ea)
 - **Formula** - Custom formula (e.g., `{qty} * 5 + 10`)
+- **Field Value** - Price based on user input × multiplier
 
 ### Conditional Logic
 

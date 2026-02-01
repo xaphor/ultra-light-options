@@ -48,6 +48,26 @@ trait Sanitization
                 'formula' => isset($field['pricing']['formula']) ? self::sanitize_formula($field['pricing']['formula']) : '',
                 'multiplier' => isset($field['pricing']['multiplier']) ? (float) $field['pricing']['multiplier'] : 1.0,
             ];
+
+            // Handle tiered pricing
+            if ($sanitized['pricing']['type'] === 'tiered') {
+                $sanitized['pricing']['base_price'] = isset($field['pricing']['base_price'])
+                    ? (float) $field['pricing']['base_price']
+                    : 0.0;
+                $sanitized['pricing']['tiers'] = [];
+
+                if (isset($field['pricing']['tiers']) && is_array($field['pricing']['tiers'])) {
+                    foreach ($field['pricing']['tiers'] as $tier) {
+                        $sanitized['pricing']['tiers'][] = [
+                            'qty_from' => isset($tier['qty_from']) ? absint($tier['qty_from']) : 1,
+                            'qty_to' => isset($tier['qty_to']) && $tier['qty_to'] !== '' && $tier['qty_to'] !== null
+                                ? absint($tier['qty_to'])
+                                : null,
+                            'price_per_unit' => isset($tier['price_per_unit']) ? (float) $tier['price_per_unit'] : 0.0,
+                        ];
+                    }
+                }
+            }
         }
 
         // Handle options for radio, radio_switch, select, checkbox_group
