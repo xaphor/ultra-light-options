@@ -81,10 +81,19 @@ final class Price_Calculator
 
         $calculated_price = 0.0;
 
+        // DEBUG: Log field data for troubleshooting
+        self::log_to_file("calculate_field_price: Field ID = $field_id, Type = $field_type");
+        self::log_to_file("calculate_field_price: Value = " . print_r($value, true));
+        self::log_to_file("calculate_field_price: Field Config = " . print_r($field, true)); // Uncommented for deep debug
+
         // Get price based on field type
         $base_field_price = match ($field_type) {
             'radio', 'radio_switch', 'select' => self::get_option_price($field, $value),
-            'checkbox' => ($value === '1' || $value === true) ? (float) ($field['price'] ?? 0) : 0.0,
+            'checkbox' => (
+                (is_array($value) && !empty($value)) ||
+                $value === '1' ||
+                $value === true
+            ) ? (float) ($field['price'] ?? 0) : 0.0,
             'text', 'number', 'textarea' => self::calculate_text_field_price($field, $value),
             default => 0.0,
         };
@@ -121,7 +130,7 @@ final class Price_Calculator
         // Calculate based on pricing type
         $calculated_price = match ($price_config['price_type']) {
             self::PRICE_TYPE_FLAT => $price_config['price'],
-            self::PRICE_TYPE_QUANTITY_FLAT => $price_config['price'] * $quantity,
+            self::PRICE_TYPE_QUANTITY_FLAT => $price_config['price'],
             self::PRICE_TYPE_FORMULA => self::evaluate_formula_safely(
                 $price_config['formula'],
                 $context
@@ -285,7 +294,8 @@ final class Price_Calculator
 
         // Add field values to context
         foreach ($field_values as $field_id => $value) {
-            $numeric_value = self::extract_numeric_value((string) $value);
+            $value_to_process = is_array($value) ? (reset($value) ?: '') : $value;
+            $numeric_value = self::extract_numeric_value((string) $value_to_process);
             $context[$field_id] = $numeric_value;
         }
 
@@ -587,6 +597,22 @@ final class Price_Calculator
         ]);
 
         return max(0.0, $calculated_per_unit);
+    }
+
+    /**
+     * Log to debug file.
+     *
+     * @param string $message Log message.
+     */
+    private static function log_to_file(string $message): void
+    {
+        $log_file = WP_CONTENT_DIR . '/plugins/ultra-light-options/debug_log.txt';
+        if (!defined('WP_CONTENT_DIR')) {
+            return;
+        }
+        $timestamp = current_time('mysql');
+        $entry = "$timestamp - $message" . PHP_EOL;
+        file_put_contents($log_file, $entry, FILE_APPEND);
     }
 
 }

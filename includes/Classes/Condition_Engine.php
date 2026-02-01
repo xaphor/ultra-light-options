@@ -152,7 +152,12 @@ final class Condition_Engine
             return $expected === '' || $expected === null;
         }
 
-        // Handle boolean for checkboxes
+        // Handle array values (e.g., checkbox selections)
+        if (is_array($actual)) {
+            return in_array((string) $expected, array_map('strval', $actual), true);
+        }
+
+        // Handle boolean for checkboxes (legacy)
         if (is_bool($actual)) {
             $actual = $actual ? '1' : '';
         }
@@ -172,6 +177,10 @@ final class Condition_Engine
     {
         if ($actual === null || $expected === '') {
             return false;
+        }
+
+        if (is_array($actual)) {
+            return in_array((string) $expected, array_map('strval', $actual), true);
         }
 
         return str_contains((string) $actual, (string) $expected);

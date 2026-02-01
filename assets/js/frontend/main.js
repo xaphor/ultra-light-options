@@ -49,10 +49,44 @@ class ULOFrontend {
         this.bindEvents();
         this.evaluateConditions();
         this.initFileUploads();
+        this.initHiddenInput();
 
         // Initial price calculation if we have fields
         if (this.container.querySelector('.ulo-field')) {
             this.calculatePrice();
+        }
+    }
+
+    /**
+     * Initialize hidden input for Modern Cart compatibility
+     */
+    initHiddenInput() {
+        const cartForm = document.querySelector('form.cart');
+        if (!cartForm) {
+            return;
+        }
+
+        let input = cartForm.querySelector('input[name="ulo_serialized"]');
+        if (!input) {
+            input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'ulo_serialized';
+            cartForm.appendChild(input);
+        }
+
+        this.updateHiddenInput();
+    }
+
+    /**
+     * Update hidden input with current values
+     */
+    updateHiddenInput() {
+        const cartForm = document.querySelector('form.cart');
+        const input = cartForm ? cartForm.querySelector('input[name="ulo_serialized"]') : null;
+
+        if (input) {
+            const values = this.collectFieldValues();
+            input.value = JSON.stringify(values);
         }
     }
 
@@ -105,6 +139,7 @@ class ULOFrontend {
 
         // Debounced price calculation
         this.debouncedCalculatePrice();
+        this.updateHiddenInput();
     }
 
     /**
@@ -192,6 +227,7 @@ class ULOFrontend {
                 this.evaluateConditions();
                 this.initFileUploads();
                 this.calculatePrice();
+                this.updateHiddenInput();
             }
         } catch (error) {
             console.error('ULO: Error loading variation fields', error);
@@ -272,7 +308,7 @@ class ULOFrontend {
         const fields = this.container.querySelectorAll('.ulo-field[data-visible="true"], .ulo-field:not([data-visible])');
 
         fields.forEach(field => {
-            const fieldName = field.dataset.fieldName;
+            const fieldName = field.dataset.fieldName || field.dataset.fieldId;
             if (!fieldName) return;
 
             const inputs = field.querySelectorAll('input, select, textarea');
@@ -361,6 +397,57 @@ class ULOFrontend {
         if (priceData.options_price > 0) {
             summary.style.display = 'block';
         }
+
+        // Update main WooCommerce price if possible
+        if (priceData.final_price_formatted) {
+            this.updateMainPrice(priceData.final_price_formatted);
+        }
+    }
+
+    /**
+     * Update the main WooCommerce product price
+     * @param {string} formattedPrice - The formatted price string to display
+     */
+    updateMainPrice(formattedPrice) {
+        // Common selectors for WooCommerce product price
+        const selectors = [
+            '.product .summary .price',
+            '.product .price',
+            '.woocommerce-Price-amount',
+            '.summary .price > .amount'
+        ];
+
+        // Try to find the price element closest to our container first
+        let priceEl = null;
+
+        // Look for price inside the product form or container siblings
+        const productContainer = this.container.closest('.product') || this.container.closest('.type-product');
+        if (productContainer) {
+            for (const selector of selectors) {
+                const el = productContainer.querySelector(selector);
+                if (el) {
+                    priceEl = el;
+                    break;
+                }
+            }
+        }
+
+        // Fallback to document search if not found in product container
+        if (!priceEl) {
+            for (const selector of selectors) {
+                const el = document.querySelector(selector);
+                if (el) {
+                    priceEl = el;
+                    break;
+                }
+            }
+        }
+
+        if (priceEl) {
+            // If it's a range (e.g. variable product), we might want to be careful
+            // But usually for calculated price we just replace the content
+            priceEl.innerHTML = formattedPrice;
+        }
     }
 
     /**
@@ -386,7 +473,7 @@ class ULOFrontend {
             html += `
                 <div class="ulo-price-breakdown-item">
                     <span class="ulo-breakdown-label">${this.escapeHtml(item.label)}</span>
-                    <span class="ulo-breakdown-value">${item.price_formatted}</span>
+                    <span class="ulo-breakdown-value">${item.formatted_price}</span>
                 </div>
             `;
         });
@@ -786,6 +873,7 @@ class ULOFrontend {
 
         delete field.dataset.uploadedFile;
         this.calculatePrice();
+        this.updateHiddenInput();
     }
 
     /**

@@ -42,6 +42,15 @@ final class Cart_Handler
         return self::$instance;
     }
 
+    private function log_to_file($message)
+    {
+        $log_file = dirname(__DIR__, 2) . '/debug_log.txt';
+        $entry = date('Y-m-d H:i:s') . ' - ' . $message . PHP_EOL;
+        file_put_contents($log_file, $entry, FILE_APPEND);
+    }
+
+
+
     /**
      * Private constructor.
      */
@@ -55,27 +64,129 @@ final class Cart_Handler
      */
     private function init_hooks(): void
     {
-        // Add custom data to cart item
+        // Add custom data to cart item (with custom_price for AJAX carts like Modern Cart)
         add_filter('woocommerce_add_cart_item_data', [$this, 'add_cart_item_data'], 10, 3);
+
+        // Apply custom_price to cart item structure after it's created
+        add_filter('woocommerce_add_cart_item', [$this, 'add_cart_item'], 20, 2);
 
         // Validate before adding to cart
         add_filter('woocommerce_add_to_cart_validation', [$this, 'validate_add_to_cart'], 10, 3);
 
-        // Modify cart item price
-        add_action('woocommerce_before_calculate_totals', [$this, 'calculate_cart_item_price'], 10, 1);
+        // Modify cart item price during cart calculation
+        add_action('woocommerce_before_calculate_totals', [$this, 'calculate_cart_item_price'], 9, 1);
 
         // Display options in cart
         add_filter('woocommerce_cart_item_name', [$this, 'display_cart_item_options'], 10, 3);
 
-        // Get cart item from session
-        add_filter('woocommerce_get_cart_item_from_session', [$this, 'get_cart_item_from_session'], 10, 2);
+        // Restore cart item from session (with custom_price for AJAX carts like Modern Cart)
+        add_filter('woocommerce_get_cart_item_from_session', [$this, 'get_cart_item_from_session'], 10, 3);
 
         // Save options to order meta
         add_action('woocommerce_checkout_create_order_line_item', [$this, 'save_order_item_meta'], 10, 4);
 
         // Display in order emails
         add_filter('woocommerce_order_item_display_meta_key', [$this, 'format_order_item_meta_key'], 10, 3);
+
+        // CRITICAL: After cart is fully loaded, inject custom_price into cart_contents for Modern Cart compatibility
+        add_action('woocommerce_cart_loaded_from_session', [$this, 'inject_custom_prices_into_cart'], 20, 1);
     }
+
+    /**
+     * Apply calculated price to a product object based on cart item options.
+     *
+     * @param \WC_Product $product Product object.
+     * @param array $cart_item Cart item data.
+     * @param string $cart_item_key Cart item key.
+     * @return \WC_Product Modified product object.
+     */
+    public function apply_price_to_product_object(\WC_Product $product, array $cart_item, string $cart_item_key): \WC_Product
+    {
+        if (!isset($cart_item['ulo_options']) || !is_array($cart_item['ulo_options'])) {
+            return $product;
+        }
+
+        // Avoid double calculation if already applied
+        if (isset($product->ulo_price_applied) && $product->ulo_price_applied === true) {
+            return $product;
+        }
+
+        $base_price = (float) $product->get_price();
+        $quantity = $cart_item['quantity'] ?? 1;
+        $product_id = $cart_item['product_id'];
+        $variation_id = $cart_item['variation_id'] ?? 0;
+
+        $fields = Data_Handler::get_all_fields($product_id, $variation_id);
+
+        $additional_price = Price_Calculator::get_total_additional_price(
+            $fields,
+            $cart_item['ulo_options'],
+            $base_price,
+            $quantity,
+            $product
+        );
+
+        if ($additional_price > 0) {
+            $new_price = $base_price + $additional_price;
+            $product->set_price($new_price);
+            $product->ulo_price_applied = true;
+
+            // Log for debugging
+            $this->log_to_file("apply_price: Applied new price $new_price (Base: $base_price + Add: $additional_price) to item $cart_item_key");
+        }
+
+        return $product;
+    }
+
+    /**
+     * Inject custom prices directly into WC cart_contents.
+     * This runs after the cart is fully restored from session.
+     * Critical for plugins like Modern Cart that read cart data before calculate_totals.
+     *
+     * @param \WC_Cart $cart WooCommerce cart object.
+     */
+    public function inject_custom_prices_into_cart($cart): void
+    {
+        if (!$cart || empty($cart->cart_contents)) {
+            return;
+        }
+
+        $log_file = WP_CONTENT_DIR . '/plugins/ultra-light-options/debug_log.txt';
+        $timestamp = current_time('mysql');
+
+        foreach ($cart->cart_contents as $cart_item_key => &$cart_item) {
+            if (!isset($cart_item['ulo_options']) || !is_array($cart_item['ulo_options'])) {
+                continue;
+            }
+
+            // Get the product object
+            if (!isset($cart_item['data']) || !($cart_item['data'] instanceof \WC_Product)) {
+                continue;
+            }
+
+            $product = $cart_item['data'];
+            $product_id = $cart_item['product_id'];
+            $variation_id = $cart_item['variation_id'] ?? 0;
+
+            // Debug log
+            if (file_exists($log_file)) {
+                $msg = "$timestamp - inject_custom_prices: Product=$product_id, Variation=$variation_id\n";
+                // Check fields count
+                $fields = Data_Handler::get_all_fields($product_id, $variation_id);
+                $msg .= "$timestamp - inject_custom_prices: Found " . count($fields) . " fields. Field IDs: " . implode(', ', array_column($fields, 'id')) . "\n";
+                file_put_contents($log_file, $msg, FILE_APPEND);
+            }
+
+            // Apply price to product object
+            $product = $this->apply_price_to_product_object($product, $cart_item, $cart_item_key);
+
+            // Set custom_price directly in cart_contents
+            if (isset($product->ulo_price_applied) && $product->ulo_price_applied) {
+                $cart->cart_contents[$cart_item_key]['custom_price'] = (float) $product->get_price();
+            }
+        }
+    }
+
 
     /**
      * Validate add to cart for required fields.
@@ -148,13 +259,59 @@ final class Cart_Handler
      */
     public function add_cart_item_data(array $cart_item_data, int $product_id, int $variation_id): array
     {
-        if (!isset($_POST['ulo']) || !is_array($_POST['ulo'])) {
+        // DEBUG: Log all POST data to understand what Modern Cart sends
+        $this->log_to_file('add_cart_item_data: POST keys = ' . print_r(array_keys($_POST), true));
+
+        if (isset($_POST['formEntries'])) {
+            $this->log_to_file('add_cart_item_data: formEntries type = ' . gettype($_POST['formEntries']));
+            $this->log_to_file('add_cart_item_data: formEntries content = ' . print_r($_POST['formEntries'], true));
+        } else {
+            $this->log_to_file('add_cart_item_data: formEntries is missing');
+        }
+
+        $submitted_ulo = [];
+
+        // Check standard location (WooCommerce default)
+        if (isset($_POST['ulo']) && is_array($_POST['ulo'])) {
+            $submitted_ulo = $_POST['ulo'];
+            $this->log_to_file('add_cart_item_data: Found ulo data in $_POST');
+        }
+        // Check Modern Cart's nested location
+        elseif (isset($_POST['formEntries']) && is_array($_POST['formEntries'])) {
+            // Check for serialized data (Robust method handling DOM issues)
+            if (isset($_POST['formEntries']['ulo_serialized']) && !empty($_POST['formEntries']['ulo_serialized'])) {
+                $decoded = json_decode(stripslashes($_POST['formEntries']['ulo_serialized']), true);
+                if (is_array($decoded)) {
+                    $submitted_ulo = $decoded;
+                    $this->log_to_file('add_cart_item_data: Found and decoded ulo_serialized data');
+                }
+            }
+
+            // Fallback: Check for array wrapper (Standard Modern Cart behavior if fields were caught)
+            if (empty($submitted_ulo) && isset($_POST['formEntries']['ulo'])) {
+                $raw_ulo = $_POST['formEntries']['ulo'];
+                $this->log_to_file('add_cart_item_data: Found ulo data in $_POST[formEntries]');
+
+                // Modern Cart's JS parser wraps the object in an array: [ { field_id: val } ]
+                if (is_array($raw_ulo) && isset($raw_ulo[0]) && is_array($raw_ulo[0])) {
+                    $submitted_ulo = $raw_ulo[0];
+                    $this->log_to_file('add_cart_item_data: Unwrapped Modern Cart array structure');
+                } else {
+                    $submitted_ulo = $raw_ulo;
+                }
+            }
+        }
+
+        if (empty($submitted_ulo)) {
+            $this->log_to_file('add_cart_item_data: No ulo data found');
             return $cart_item_data;
         }
 
+        $this->log_to_file('add_cart_item_data: Processing ulo data');
+
         // Sanitize all option values
         $options = [];
-        foreach ($_POST['ulo'] as $field_id => $value) {
+        foreach ($submitted_ulo as $field_id => $value) {
             $field_id = sanitize_key($field_id);
 
             if (is_array($value)) {
@@ -173,6 +330,109 @@ final class Cart_Handler
 
             // Create unique cart item key to allow same product with different options
             $cart_item_data['ulo_unique_key'] = md5(wp_json_encode($options));
+
+            // Calculate and store custom_price immediately for AJAX carts (Modern Cart, etc.)
+            $product = wc_get_product($variation_id ?: $product_id);
+            if ($product) {
+                $base_price = (float) $product->get_price();
+
+                // Get quantity from root POST or formEntries (for Modern Cart)
+                $quantity = 1;
+                if (isset($_POST['quantity'])) {
+                    $quantity = max(1, (int) $_POST['quantity']);
+                } elseif (isset($_POST['formEntries']['quantity'])) {
+                    $quantity = max(1, (int) $_POST['formEntries']['quantity']);
+                }
+
+                $fields = Data_Handler::get_all_fields($product_id, $variation_id);
+
+                // DIAGNOSTICS: Deep dive into current configuration
+                $all_groups_db = Data_Handler::get_all_field_groups();
+                $applicable_groups = Data_Handler::get_field_groups($product_id, $variation_id);
+                $this->log_to_file("DIAGNOSTIC: DB has " . count($all_groups_db) . " groups total.");
+                $this->log_to_file("DIAGNOSTIC: Applicable groups: " . implode(', ', array_keys($applicable_groups)));
+                $this->log_to_file("DIAGNOSTIC: Fields retrieved count: " . count($fields));
+                $this->log_to_file("DIAGNOSTIC: Field IDs retrieved: " . implode(', ', array_map(fn($f) => $f['id'] ?? '??', $fields)));
+
+                foreach ($fields as $field) {
+                    $fid = $field['id'] ?? 'unknown';
+                    if (isset($options[$fid])) {
+                        $this->log_to_file("DIAGNOSTIC: Config for selected field [$fid]: " . print_r($field, true));
+                    }
+                }
+
+
+                $this->log_to_file('add_cart_item_data: Calculating price. Base: ' . $base_price . ' Qty: ' . $quantity);
+
+                $additional_price = Price_Calculator::get_total_additional_price(
+                    $fields,
+                    $options,
+                    $base_price,
+                    $quantity,
+                    $product
+                );
+
+                $this->log_to_file('add_cart_item_data: Additional price: ' . $additional_price);
+
+                if ($additional_price > 0) {
+                    $cart_item_data['custom_price'] = $base_price + $additional_price;
+                    $this->log_to_file('add_cart_item_data: Set custom_price to ' . $cart_item_data['custom_price']);
+                }
+            }
+        }
+
+        return $cart_item_data;
+    }
+
+    /**
+     * Apply custom_price to cart item after it's created.
+     * This ensures the product object also has the correct price.
+     *
+     * @param array<string, mixed> $cart_item_data Cart item data (includes 'data' product object).
+     * @param string $cart_item_key Cart item key.
+     * @return array<string, mixed> Modified cart item data.
+     */
+    public function add_cart_item(array $cart_item_data, string $cart_item_key): array
+    {
+        if (!isset($cart_item_data['ulo_options']) || !is_array($cart_item_data['ulo_options'])) {
+            return $cart_item_data;
+        }
+
+        // If custom_price was already calculated in add_cart_item_data, apply it to product
+        if (isset($cart_item_data['custom_price']) && isset($cart_item_data['data'])) {
+            $this->log_to_file('add_cart_item: Applying pre-calculated custom_price: ' . $cart_item_data['custom_price']);
+            $cart_item_data['data']->set_price($cart_item_data['custom_price']);
+            $cart_item_data['data']->ulo_price_applied = true;
+            return $cart_item_data;
+        }
+
+        // Fallback: calculate if not already done
+        if (isset($cart_item_data['data']) && $cart_item_data['data'] instanceof \WC_Product) {
+            $product = $cart_item_data['data'];
+            $base_price = (float) $product->get_price();
+            $quantity = $cart_item_data['quantity'] ?? 1;
+            $fields = Data_Handler::get_all_fields(
+                $cart_item_data['product_id'],
+                $cart_item_data['variation_id'] ?? 0
+            );
+
+            $this->log_to_file('add_cart_item: Calculating fallback price.');
+
+            $additional_price = Price_Calculator::get_total_additional_price(
+                $fields,
+                $cart_item_data['ulo_options'],
+                $base_price,
+                $quantity,
+                $product
+            );
+
+            if ($additional_price > 0) {
+                $new_price = $base_price + $additional_price;
+                $cart_item_data['custom_price'] = $new_price;
+                $product->set_price($new_price);
+                $product->ulo_price_applied = true;
+                $this->log_to_file('add_cart_item: Set new custom_price: ' . $new_price);
+            }
         }
 
         return $cart_item_data;
@@ -185,7 +445,7 @@ final class Cart_Handler
      * @param array<string, mixed> $values Session values.
      * @return array<string, mixed> Cart item.
      */
-    public function get_cart_item_from_session(array $cart_item, array $values): array
+    public function get_cart_item_from_session(array $cart_item, array $values, string $key = ''): array
     {
         if (isset($values['ulo_options'])) {
             $cart_item['ulo_options'] = $values['ulo_options'];
@@ -193,7 +453,73 @@ final class Cart_Handler
         if (isset($values['ulo_unique_key'])) {
             $cart_item['ulo_unique_key'] = $values['ulo_unique_key'];
         }
+
+        // Recalculate and set custom_price for AJAX carts (Modern Cart, etc.)
+        if (isset($cart_item['ulo_options']) && isset($cart_item['data']) && $cart_item['data'] instanceof \WC_Product) {
+            $product = $cart_item['data'];
+            $base_price = (float) $product->get_price();
+            $quantity = $cart_item['quantity'] ?? 1;
+
+            $this->log_to_file('session: Restoring item. Base: ' . $base_price);
+
+            $fields = Data_Handler::get_all_fields(
+                $cart_item['product_id'],
+                $cart_item['variation_id'] ?? 0
+            );
+
+            $additional_price = Price_Calculator::get_total_additional_price(
+                $fields,
+                $cart_item['ulo_options'],
+                $base_price,
+                $quantity,
+                $product
+            );
+
+            if ($additional_price > 0) {
+                $new_price = $base_price + $additional_price;
+                $cart_item['custom_price'] = $new_price;
+                $product->set_price($new_price);
+                $product->ulo_price_applied = true;
+                $this->log_to_file('session: Applied custom_price: ' . $new_price);
+            }
+        }
+
         return $cart_item;
+    }
+
+    /**
+     * Calculate additional price for cart item.
+     * Helper method used by calculate_cart_item_price.
+     *
+     * @param \WC_Product $product Product object.
+     * @param array $cart_item Cart item data.
+     * @return float Additional price amount.
+     */
+    private function calculate_additional_price(\WC_Product $product, array $cart_item): float
+    {
+        if (!isset($cart_item['ulo_options']) || !is_array($cart_item['ulo_options'])) {
+            return 0.0;
+        }
+
+        $product_id = $cart_item['product_id'];
+        $variation_id = $cart_item['variation_id'] ?? 0;
+        $quantity = $cart_item['quantity'] ?? 1;
+        $selected_options = $cart_item['ulo_options'];
+
+        $fields = Data_Handler::get_all_fields($product_id, $variation_id);
+        if (empty($fields)) {
+            return 0.0;
+        }
+
+        $base_price = (float) $product->get_price();
+
+        return Price_Calculator::get_total_additional_price(
+            $fields,
+            $selected_options,
+            $base_price,
+            $quantity,
+            $product
+        );
     }
 
     /**
@@ -207,7 +533,7 @@ final class Cart_Handler
             return;
         }
 
-        if (did_action('woocommerce_before_calculate_totals') >= 2) {
+        if (did_action('woocommerce_before_calculate_totals') >= 20) {
             return;
         }
 
@@ -223,6 +549,18 @@ final class Cart_Handler
 
             /** @var \WC_Product $product */
             $product = $cart_item['data'];
+
+            // Avoid double calculation if already applied via woocommerce_cart_item_product filter
+            if (isset($product->ulo_price_applied) && $product->ulo_price_applied === true) {
+                // Ensure custom_price is set for compatibility (plugins like Modern Cart)
+                if (isset($cart->cart_contents[$cart_item_key])) {
+                    $cart->cart_contents[$cart_item_key]['custom_price'] = (float) $product->get_price();
+                }
+                continue;
+            }
+
+            $this->log_to_file('calculate: Calculating price for ' . $product_id);
+
             $base_price = (float) $product->get_price();
 
             // Get applicable fields
@@ -243,13 +581,21 @@ final class Cart_Handler
 
             if ($additional_price > 0) {
                 // Set new price (base + additional)
-                $product->set_price($base_price + $additional_price);
+                $new_price = $base_price + $additional_price;
+                $product->set_price($new_price);
+                $this->log_to_file('calculate: Set price to ' . $new_price);
+
+                // Compatibility: Set custom_price for plugins like Modern Cart
+                if (isset($cart->cart_contents[$cart_item_key])) {
+                    $cart->cart_contents[$cart_item_key]['custom_price'] = $new_price;
+                    $this->log_to_file('calculate: Set custom_price for cart contents');
+                }
 
                 self::log_debug('Cart item price updated', [
                     'cart_item_key' => $cart_item_key,
                     'base_price' => $base_price,
                     'additional_price' => $additional_price,
-                    'new_price' => $base_price + $additional_price,
+                    'new_price' => $new_price,
                 ]);
             }
         }

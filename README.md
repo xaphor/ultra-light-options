@@ -51,6 +51,7 @@ I built **Ultra-Light Product Options** because we believe these essential featu
 - **Zero Layout Shift** - Optimized CSS prevents visual jumping during page load
 - **No jQuery Dependency** - Pure vanilla JavaScript for better performance
 - **HPOS Compatible** - Works with WooCommerce High-Performance Order Storage
+- **Modern Cart Integration** - Seamlessly integrates with AJAX carts like CartFlows Modern Cart
 - **GMC Compliant** - Structured data compatible with Google Merchant Center
 
 ## Requirements

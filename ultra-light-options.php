@@ -5,7 +5,7 @@ declare(strict_types=1);
  * Plugin Name: Ultra-Light Product Options
  * Plugin URI: https://github.com/xaphor/ultra-light-options
  * Description: A lightweight, GMC-compliant WooCommerce plugin for adding custom product options with conditional logic and advanced pricing (flat, quantity-based, tiered, formula, field value). Zero Layout Shift, No jQuery.
- * Version: 2.1.0
+ * Version: 2.1.1
  * Author: Zaffarullah
  * Author URI: https://github.com/xaphor
  * License: GPL v2 or later
@@ -18,7 +18,7 @@ declare(strict_types=1);
  * WC tested up to: 9.0
  *
  * @package UltraLightOptions
- * @version 2.1.0
+ * @version 2.1.1
  */
 
 
@@ -30,7 +30,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants.
-define('ULO_VERSION', '2.0.0');
+define('ULO_VERSION', '2.1.1');
 define('ULO_PLUGIN_FILE', __FILE__);
 define('ULO_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('ULO_PLUGIN_URL', plugin_dir_url(__FILE__));
@@ -216,11 +216,6 @@ final class Ultra_Light_Options
             if (class_exists('\ULO\Frontend\ULO_Frontend')) {
                 \ULO\Frontend\ULO_Frontend::get_instance();
             }
-        }
-
-        // Initialize compatibility layers
-        if (class_exists('\ULO\Compatibility\Modern_Cart')) {
-            \ULO\Compatibility\Modern_Cart::get_instance();
         }
     }
 
