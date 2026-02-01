@@ -56,9 +56,22 @@ final class Modern_Cart
             return;
         }
 
-        // Force price recalculation on Modern Cart AJAX requests
-        add_action('wp_ajax_modern_cart_get_cart', [$this, 'force_price_calculation'], 5);
-        add_action('wp_ajax_nopriv_modern_cart_get_cart', [$this, 'force_price_calculation'], 5);
+        // List of Modern Cart AJAX actions that need price recalculation
+        $actions = [
+            'moderncart_refresh_slide_out_cart',
+            'moderncart_update_cart',
+            'moderncart_add_to_cart',
+            'moderncart_refresh_floating_cart',
+            'moderncart_apply_coupon',
+            'moderncart_remove_coupon',
+            'moderncart_remove_product'
+        ];
+
+        foreach ($actions as $action) {
+            // Priority 1 to run before Modern Cart's handlers
+            add_action("wp_ajax_{$action}", [$this, 'force_price_calculation'], 1);
+            add_action("wp_ajax_nopriv_{$action}", [$this, 'force_price_calculation'], 1);
+        }
 
         // Ensure cart fragments include updated prices
         add_filter('woocommerce_add_to_cart_fragments', [$this, 'add_cart_fragments'], 20, 1);
